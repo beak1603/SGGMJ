@@ -2279,6 +2279,39 @@
       }
     }
 
+
+    /* ===== Generated SGMJ brush logo title ===== */
+    .site-title.logo-title {
+      margin: -2px 0 14px !important;
+      padding: 0 !important;
+      width: min(540px, calc(100% - 380px)) !important;
+      max-width: 100% !important;
+      display: block !important;
+      line-height: 0 !important;
+      background: transparent !important;
+    }
+    .site-title.logo-title::before,
+    .site-title.logo-title::after {
+      display: none !important;
+      content: none !important;
+    }
+    .site-title-logo {
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      max-width: 100% !important;
+      object-fit: contain !important;
+      user-select: none !important;
+      -webkit-user-drag: none !important;
+      filter: none !important;
+    }
+    @media (max-width: 640px) {
+      .site-title.logo-title {
+        width: min(92vw, 390px) !important;
+        margin: 0 0 12px !important;
+      }
+    }
+
 </style>
 </head>
 <body>
@@ -2287,8 +2320,8 @@
       <a class="source-link" href="https://www.sooplive.com/station/gosegu2/post/204391425" target="_blank" rel="noopener noreferrer">원본 게시글 ↗</a>
     </div>
     <section class="hero">
-      <h1 class="site-title" aria-label="스까묵자 배그 신청자 랭킹">
-        <strong>스까묵자</strong><span> 배그 신청자 랭킹</span>
+      <h1 class="site-title logo-title" aria-label="스까묵자 배그">
+        <img class="site-title-logo" src="assets/sgmj-title.png" alt="스까묵자 배그" />
       </h1>
       <div id="deadlineCountdown" class="deadline-countdown" role="status" aria-live="polite">
         <span class="deadline-label">신청 마감까지</span>
