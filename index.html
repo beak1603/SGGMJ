@@ -2576,7 +2576,8 @@
 
     function badgeHtml(item) {
       const key = itemKey(item);
-      const dragged = state.newDraggedApplicants.has(key) ? `<span class="new-badge">NEW!</span>` : '';
+      const sharedNew = manualGenderKeys(item).some(k => state.sharedNewApplicants.has(k));
+      const dragged = (state.newDraggedApplicants.has(key) || sharedNew) ? `<span class="new-badge">NEW!</span>` : '';
       const fresh = state.newApplicants.has(key) ? `<span class="fresh-badge">신규</span>` : '';
       return dragged + fresh;
     }
