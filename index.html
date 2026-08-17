@@ -3109,7 +3109,7 @@
 
     async function fetchSharedRankHistory() {
       const response = await fetch(
-        `${CONFIG.supabaseUrl}/rest/v1/rank_sync_state?select=rank_changes,rank_expires_at&id=eq.1&_=${Date.now()}`,
+        `${CONFIG.supabaseUrl}/rest/v1/rank_sync_state?select=rank_changes,rank_expires_at&id=eq.1`,
         {
           headers: { apikey: CONFIG.supabasePublishableKey },
           cache: 'no-store'
@@ -3123,30 +3123,35 @@
     }
 
     async function syncSharedRankHistory(currentMaps) {
-      if (!state.isAdmin || !state.adminCode) {
-        return fetchSharedRankHistory();
+      if (state.isAdmin && state.adminCode) {
+        try {
+          const response = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/sync_rank_history`, {
+            method: 'POST',
+            headers: {
+              apikey: CONFIG.supabasePublishableKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              p_admin_code: state.adminCode,
+              p_snapshot: currentMaps
+            })
+          });
+          if (!response.ok) throw new Error(`공용 순위 기록 갱신 오류 (${response.status})`);
+          const payload = await response.json();
+          const row = Array.isArray(payload) ? payload[0] : payload;
+          applySharedRankHistory(row || {});
+          return true;
+        } catch (err) {
+          console.warn('공용 순위 기록 갱신 실패', err);
+        }
       }
 
       try {
-        const response = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/sync_rank_history`, {
-          method: 'POST',
-          headers: {
-            apikey: CONFIG.supabasePublishableKey,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            p_admin_code: state.adminCode,
-            p_snapshot: currentMaps
-          })
-        });
-        if (!response.ok) throw new Error(`공용 순위 기록 갱신 오류 (${response.status})`);
-        const payload = await response.json();
-        const row = Array.isArray(payload) ? payload[0] : payload;
-        applySharedRankHistory(row || {});
-        return true;
+        return await fetchSharedRankHistory();
       } catch (err) {
-        console.warn('공용 순위 기록 갱신 실패', err);
-        return fetchSharedRankHistory();
+        // 공용 순위 기록 오류가 신청자 목록 전체를 가리지 않도록 분리합니다.
+        console.warn('공용 순위 기록 불러오기 실패', err);
+        return false;
       }
     }
 
