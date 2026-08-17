@@ -2312,6 +2312,55 @@
       }
     }
 
+
+    /* ===== TOP100 exact headcount + single red cutoff bar ===== */
+    .rank-row.top100-cutoff-row,
+    .female-board .rank-row.top100-cutoff-row,
+    .male-board .rank-row.top100-cutoff-row {
+      box-shadow: none !important;
+    }
+    .top100-cutoff-label,
+    .female-board .top100-cutoff-label,
+    .male-board .top100-cutoff-label {
+      width: 100% !important;
+      height: 20px !important;
+      min-height: 20px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: #e23b3b !important;
+      background-image: none !important;
+      box-shadow: none !important;
+      color: #fff !important;
+      font-size: 10px !important;
+      font-weight: 900 !important;
+      line-height: 1 !important;
+      letter-spacing: .025em !important;
+      text-align: center !important;
+      user-select: none !important;
+      pointer-events: none !important;
+    }
+    .top100-cutoff-label span {
+      color: #fff !important;
+      background: transparent !important;
+      border: 0 !important;
+      padding: 0 !important;
+      line-height: 1 !important;
+    }
+    @media (max-width: 640px) {
+      .top100-cutoff-label,
+      .female-board .top100-cutoff-label,
+      .male-board .top100-cutoff-label {
+        height: 17px !important;
+        min-height: 17px !important;
+        font-size: 8px !important;
+      }
+    }
+
 </style>
 </head>
 <body>
@@ -2993,8 +3042,9 @@
     }
 
     function takeTopRanks(items, limit = 100) {
-      if (!state.top10) return [...items].sort(compareRankItems);
-      return rankedItems(items).filter(x => x.rank <= limit).map(x => x.item);
+      const sorted = [...items].sort(compareRankItems);
+      if (!state.top10) return sorted;
+      return sorted.slice(0, limit);
     }
 
     function buildRankMaps(comments) {
@@ -3295,19 +3345,23 @@
       const rankMap = isSearch ? fullRankMap(scope) : null;
       const visible = isSearch && state.top10
         ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 100).sort(compareRankItems)
-        : takeTopRanks(items);
-      const displayCount = state.top10 ? visible.length : totalCount;
+        : (state.top10 && scope === 'overall' ? [...items].sort(compareRankItems) : takeTopRanks(items));
+      const displayCount = state.top10
+        ? (scope === 'overall' ? Math.min(100, totalCount) : Math.min(100, visible.length))
+        : totalCount;
       const genderClass = genderDrop === 'female' ? ' female-board' : genderDrop === 'male' ? ' male-board' : '';
       const dropAttrs = genderDrop ? ` data-gender-drop="${genderDrop}" class="board drop-zone${genderClass}"` : ' class="board"';
       const draggable = Boolean(genderDrop) && state.isAdmin;
       const rankedVisible = isSearch
         ? [...visible].sort(compareRankItems).map(item => ({ item, rank: rankMap.get(itemKey(item)) || 0 }))
         : rankedItems(visible);
-      const lastCutoffIndex = cutoffRank > 0 ? rankedVisible.reduce((last, entry, index) => entry.rank <= cutoffRank ? index : last, -1) : -1;
+      const lastCutoffIndex = cutoffRank > 0 && rankedVisible.length
+        ? Math.min(cutoffRank, rankedVisible.length) - 1
+        : -1;
       const rows = rankedVisible.length ? rankedVisible.map(({ item, rank }, index) => {
         const row = rowHtml(item, rank, draggable, scope, index === lastCutoffIndex);
         const cutoffLabel = index === lastCutoffIndex
-          ? `<div class="top100-cutoff-label" aria-label="100명 기준 컷트라인"><span>100명 기준 컷트라인</span></div>`
+          ? `<div class="top100-cutoff-label" aria-label="커트라인"><span>커트라인</span></div>`
           : '';
         return row + cutoffLabel;
       }).join('') : `<div class="empty">${esc(emptyMessage)}</div>`;
@@ -3371,7 +3425,8 @@
           ${boardHtml('남자 신청자', male, state.query ? '검색 결과가 없습니다.' : '남자로 분류된 신청자가 없습니다.', 'male', 'male', showGenderCutoff ? maleTop100Cutoff : 0)}
         </div>${unknownBoard}`;
       } else {
-        contentEl.innerHTML = `<div class="single">${boardHtml('전체 신청자', tagged.sort(compareRankItems), state.query ? '검색 결과가 없습니다.' : '신청 댓글이 없습니다.', '', 'overall')}</div>${unknownBoard}`;
+        const overallCutoff = state.top10 && !state.query.trim() ? 100 : 0;
+        contentEl.innerHTML = `<div class="single">${boardHtml('전체 신청자', tagged.sort(compareRankItems), state.query ? '검색 결과가 없습니다.' : '신청 댓글이 없습니다.', '', 'overall', overallCutoff)}</div>${unknownBoard}`;
       }
     }
 
