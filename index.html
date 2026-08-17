@@ -1892,6 +1892,53 @@
       overscroll-behavior: none;
     }
 
+
+
+    /* ===== Overall board header cleanup ===== */
+    .single .board-head {
+      background: #f8fcff !important;
+      background-image: none !important;
+      border-bottom-color: #dceaf3 !important;
+      color: #183047 !important;
+      box-shadow: inset 0 -1px 0 rgba(214, 231, 241, .55);
+      forced-color-adjust: none;
+    }
+    .single .board-title strong {
+      color: #2f6f92 !important;
+    }
+    .single .board-title:first-child > span {
+      margin-left: 2px !important;
+      padding: 0 !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      background-image: none !important;
+      box-shadow: none !important;
+      color: #6a8291 !important;
+      font-size: 12px !important;
+      font-weight: 800 !important;
+      line-height: 1 !important;
+      forced-color-adjust: none;
+    }
+    .single .board-head > .board-title:last-child > span {
+      background: #eef8fe !important;
+      background-image: none !important;
+      border-color: #cfe7f4 !important;
+      color: #4b7790 !important;
+      box-shadow: none !important;
+      forced-color-adjust: none;
+    }
+
+    /* Rows are full click targets, but keep the existing visual cursor behavior. */
+    .rank-row[data-comment-url],
+    .unknown-row[data-comment-url] {
+      outline: none;
+    }
+    .rank-row[data-comment-url]:focus-visible,
+    .unknown-row[data-comment-url]:focus-visible {
+      box-shadow: inset 0 0 0 2px rgba(57, 175, 240, .28);
+    }
+
 </style>
 </head>
 <body>
@@ -2617,9 +2664,8 @@
     }
 
     function nameHtml(item) {
-      const url = commentUrl(item);
       const label = esc(item.nickname);
-      return `<a class="name-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="${label} 신청 댓글로 이동">${label}</a>`;
+      return `<span class="name-link">${label}</span>`;
     }
 
     function badgeHtml(item) {
@@ -2645,7 +2691,7 @@
         ? `<button class="undo-gender-btn" type="button" draggable="false" data-unclassify="${esc(itemKey(item))}" title="미확인으로 되돌리기" aria-label="${esc(item.nickname)} 미확인으로 되돌리기">↩</button>`
         : '';
       const actionClass = undo ? ' has-admin-action' : '';
-      return `<div class="rank-row${topClass}${actionClass}"${dragAttrs}>
+      return `<div class="rank-row${topClass}${actionClass}"${dragAttrs} data-comment-url="${esc(commentUrl(item))}" role="link" tabindex="0">
         <div class="rank-num">${rank}</div>
         ${avatarHtml(item)}
         <div class="name" title="${esc(item.nickname)}">${nameHtml(item)}${badgeHtml(item)}${rankMoveHtml(item, scope)}</div>
@@ -2660,7 +2706,7 @@
           <button class="gender-btn" type="button" data-manual-gender="female" data-item-key="${key}">여자</button>
           <button class="gender-btn" type="button" data-manual-gender="male" data-item-key="${key}">남자</button>
         </div>` : '';
-      return `<div class="unknown-row">
+      return `<div class="unknown-row" data-comment-url="${esc(commentUrl(item))}" role="link" tabindex="0">
         <div class="rank-num">${rank}</div>
         ${avatarHtml(item)}
         <div class="name" title="${esc(item.nickname)}">${nameHtml(item)}${badgeHtml(item)}</div>
@@ -2772,6 +2818,15 @@
     $('#refreshBtn').addEventListener('click', () => loadComments({ silent: state.comments.length > 0 }));
 
     contentEl.addEventListener('click', (e) => {
+      const rowLink = e.target.closest('[data-comment-url]');
+      if (rowLink && !e.target.closest('button')) {
+        const url = rowLink.dataset.commentUrl || '';
+        if (url) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+          return;
+        }
+      }
+
       const unclassifyBtn = e.target.closest('[data-unclassify]');
       if (unclassifyBtn) {
         if (!state.isAdmin) return;
@@ -2812,6 +2867,19 @@
         syncGenderOperation({ operation: 'reset' });
         render();
       }
+    });
+
+
+
+    contentEl.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (e.target.closest('button')) return;
+      const rowLink = e.target.closest('[data-comment-url]');
+      if (!rowLink) return;
+      const url = rowLink.dataset.commentUrl || '';
+      if (!url) return;
+      e.preventDefault();
+      window.open(url, '_blank', 'noopener,noreferrer');
     });
 
     let draggedKey = '';
