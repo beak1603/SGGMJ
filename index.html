@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#eaf7ff" />
+  <meta name="color-scheme" content="only light" />
   <title>스까묵자 배그</title>
   <style>
     :root {
@@ -30,7 +31,7 @@
     }
 
     * { box-sizing: border-box; }
-    html { color-scheme: light; }
+    html { color-scheme: only light; }
     body {
       margin: 0;
       background:
@@ -1960,6 +1961,31 @@
       }
     }
 
+
+
+    /* ===== Dark-mode forced-vignette prevention ===== */
+    @media (prefers-color-scheme: dark) {
+      html,
+      body,
+      body.top100-mode {
+        color-scheme: only light !important;
+        background: #f4f9fd !important;
+        background-image: none !important;
+        color: #183047 !important;
+      }
+      body::before,
+      body::after,
+      .hero::before,
+      .hero::after {
+        display: none !important;
+        content: none !important;
+      }
+      .hero {
+        background: #ffffff !important;
+        background-image: none !important;
+      }
+    }
+
 </style>
 </head>
 <body>
@@ -2058,12 +2084,14 @@
       loadSeq: 0,
       isAdmin: false,
       adminCode: '',
-      sharedNewApplicants: new Set()
+      sharedNewApplicants: new Set(),
+      sharedNewVersions: {}
     };
 
     const STORAGE_KEY = 'soop-rank-manual-gender-v1';
     const ADMIN_SESSION_KEY = 'soop-rank-admin-session-v1';
     const ADMIN_CODE_SESSION_KEY = 'soop-rank-admin-code-session-v1';
+    const NEW_SEEN_SESSION_KEY = 'soop-rank-seen-new-v1';
 
     const $ = (sel) => document.querySelector(sel);
     const contentEl = $('#content');
@@ -2106,6 +2134,46 @@
         if (code) sessionStorage.setItem(ADMIN_CODE_SESSION_KEY, code);
         else sessionStorage.removeItem(ADMIN_CODE_SESSION_KEY);
       } catch {}
+    }
+
+    function loadSeenNewVersions() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(NEW_SEEN_SESSION_KEY) || '{}');
+        return saved && typeof saved === 'object' ? saved : {};
+      } catch { return {}; }
+    }
+
+    function saveSeenNewVersions(value) {
+      try { sessionStorage.setItem(NEW_SEEN_SESSION_KEY, JSON.stringify(value || {})); }
+      catch {}
+    }
+
+    function dismissCurrentNewBadges(renderNow = false) {
+      const seen = loadSeenNewVersions();
+      const fallbackUntil = Date.now() + 31 * 60 * 1000;
+
+      for (const key of state.sharedNewApplicants) {
+        const version = Number(state.sharedNewVersions?.[key] || 0);
+        seen[key] = Math.max(Number(seen[key] || 0), version || fallbackUntil);
+      }
+      // Locally dragged rows may not have re-fetched their cloud new_until yet.
+      // A slightly-longer local marker guarantees that the next reload does not
+      // resurrect the same NEW! badge from the shared database.
+      for (const key of state.newDraggedApplicants) {
+        seen[key] = Math.max(Number(seen[key] || 0), fallbackUntil);
+        const item = state.comments.find(x => itemKey(x) === key);
+        if (item) {
+          for (const alias of manualGenderKeys(item)) {
+            seen[alias] = Math.max(Number(seen[alias] || 0), fallbackUntil);
+          }
+        }
+      }
+
+      saveSeenNewVersions(seen);
+      state.newDraggedApplicants.clear();
+      state.sharedNewApplicants.clear();
+      state.sharedNewVersions = {};
+      if (renderNow && !state.loading) render();
     }
 
     function updateAdminUi() {
@@ -2279,15 +2347,21 @@
       const rows = await response.json();
       const cloud = {};
       const sharedNew = new Set();
+      const sharedNewVersions = {};
+      const seenNew = loadSeenNewVersions();
       const now = Date.now();
       for (const row of Array.isArray(rows) ? rows : []) {
         const key = String(row?.applicant_key || '').trim();
         const gender = String(row?.gender || '').trim();
         if (key && (gender === 'female' || gender === 'male' || gender === 'unknown')) cloud[key] = gender;
         const newUntil = row?.new_until ? Date.parse(row.new_until) : 0;
-        if (key && Number.isFinite(newUntil) && newUntil > now) sharedNew.add(key);
+        if (key && Number.isFinite(newUntil) && newUntil > now) {
+          sharedNewVersions[key] = newUntil;
+          if (newUntil > Number(seenNew[key] || 0)) sharedNew.add(key);
+        }
       }
       state.sharedNewApplicants = sharedNew;
+      state.sharedNewVersions = sharedNewVersions;
       return cloud;
     }
 
@@ -2847,7 +2921,11 @@
       render();
     });
 
-    $('#refreshBtn').addEventListener('click', () => loadComments({ silent: state.comments.length > 0 }));
+    $('#refreshBtn').addEventListener('click', () => {
+      dismissCurrentNewBadges(true);
+      loadComments({ silent: state.comments.length > 0 });
+      loadCloudGenderOverrides();
+    });
 
     contentEl.addEventListener('click', (e) => {
       const rowLink = e.target.closest('[data-comment-url]');
@@ -3126,6 +3204,8 @@
     adminModal.addEventListener('click', (e) => {
       if (e.target === adminModal) closeAdminModal();
     });
+
+    window.addEventListener('pagehide', () => dismissCurrentNewBadges(false));
 
     state.isAdmin = loadAdminSession();
     state.adminCode = loadAdminCodeSession();
