@@ -2455,6 +2455,7 @@
       proxyBase: '',
       supabaseUrl: 'https://ezpfongqfmaczftwleog.supabase.co',
       supabasePublishableKey: 'sb_publishable_t25xim64x_XQJxwleaA57w_WGINOMrW',
+      supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImV6cGZvbmdxZm1hY3pmdHdsZW9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NDIxNjgsImV4cCI6MjEwMjUxODE2OH0.ZRszTtbdDFxgyon248OTiPu-jIvGM41v1EPGLL0kpiE',
       adminCodeHash: '72a19e5761d3dbe392b2105d4a461de051cdf59e89c6d9321e277c7a641dfffd'
     };
 
@@ -2727,7 +2728,7 @@
           closeAdminModal();
           syncAllLocalOverridesToCloud();
           if (state.comments.length) {
-            syncSharedRankHistory(buildRankMaps(state.comments)).then(() => render());
+            syncSharedRankHistory().then(() => render());
           }
         } else {
           adminError.textContent = '관리자 코드가 올바르지 않습니다.';
@@ -3122,28 +3123,24 @@
       return Boolean(row);
     }
 
-    async function syncSharedRankHistory(currentMaps) {
-      if (state.isAdmin && state.adminCode) {
-        try {
-          const response = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/sync_rank_history`, {
-            method: 'POST',
-            headers: {
-              apikey: CONFIG.supabasePublishableKey,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              p_admin_code: state.adminCode,
-              p_snapshot: currentMaps
-            })
-          });
-          if (!response.ok) throw new Error(`공용 순위 기록 갱신 오류 (${response.status})`);
-          const payload = await response.json();
-          const row = Array.isArray(payload) ? payload[0] : payload;
-          applySharedRankHistory(row || {});
-          return true;
-        } catch (err) {
-          console.warn('공용 순위 기록 갱신 실패', err);
-        }
+    async function syncSharedRankHistory() {
+      try {
+        const response = await fetch(`${CONFIG.supabaseUrl}/functions/v1/sync-ranks`, {
+          method: 'POST',
+          headers: {
+            apikey: CONFIG.supabasePublishableKey,
+            Authorization: `Bearer ${CONFIG.supabaseAnonKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: '{}',
+          cache: 'no-store'
+        });
+        if (!response.ok) throw new Error(`공용 순위 자동 갱신 오류 (${response.status})`);
+        const payload = await response.json();
+        applySharedRankHistory(payload || {});
+        return true;
+      } catch (err) {
+        console.warn('공용 순위 자동 갱신 실패', err);
       }
 
       try {
@@ -3232,6 +3229,7 @@
 
       try {
         const previousKeys = state.comments.length ? new Set(state.comments.map(itemKey)) : null;
+        const sharedRankPromise = syncSharedRankHistory();
         const collected = [];
         let lastPage = 1;
 
@@ -3269,8 +3267,7 @@
             if (!previousKeys.has(key)) state.newApplicants.add(key);
           }
         }
-        const currentRankMaps = buildRankMaps(state.comments);
-        await syncSharedRankHistory(currentRankMaps);
+        await sharedRankPromise;
         if (seq !== state.loadSeq) return;
         state.updatedAt = new Date();
         state.loading = false;
