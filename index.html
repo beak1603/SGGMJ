@@ -2476,7 +2476,7 @@
       newDraggedApplicants: new Set(),
       // 페이지가 열린 뒤 새로 추가된 신청자. 새로고침하면 초기화됩니다.
       newApplicants: new Set(),
-      // 가장 최근에 확인된 순위 변동. 변동 발생 후 30분 동안 유지합니다.
+      // 관리자가 갱신한 공용 순위 변동. 모든 브라우저에서 같은 값을 표시합니다.
       rankChanges: { overall: {}, female: {}, male: {} },
       rankChangeExpires: { overall: {}, female: {}, male: {} },
       top10: false,
@@ -2491,8 +2491,6 @@
     const ADMIN_SESSION_KEY = 'soop-rank-admin-session-v1';
     const ADMIN_CODE_SESSION_KEY = 'soop-rank-admin-code-session-v1';
     const NEW_SEEN_SESSION_KEY = 'soop-rank-seen-new-v1';
-    const RANK_HISTORY_KEY = 'soop-rank-history-v1';
-    const RANK_CHANGE_TTL_MS = 30 * 60 * 1000;
 
     const $ = (sel) => document.querySelector(sel);
     const contentEl = $('#content');
@@ -2728,6 +2726,9 @@
           setAdminMode(true);
           closeAdminModal();
           syncAllLocalOverridesToCloud();
+          if (state.comments.length) {
+            syncSharedRankHistory(buildRankMaps(state.comments)).then(() => render());
+          }
         } else {
           adminError.textContent = '관리자 코드가 올바르지 않습니다.';
           adminCodeInput.select();
@@ -3080,20 +3081,6 @@
       };
     }
 
-    function calculateRankChanges(previousMaps, currentMaps) {
-      const result = { overall: {}, female: {}, male: {} };
-      if (!previousMaps) return result;
-      for (const scope of Object.keys(result)) {
-        for (const [key, currentRank] of Object.entries(currentMaps[scope] || {})) {
-          const previousRank = previousMaps[scope]?.[key];
-          if (!previousRank) continue;
-          const delta = previousRank - currentRank;
-          if (delta) result[scope][key] = delta;
-        }
-      }
-      return result;
-    }
-
     function emptyRankGroups() {
       return { overall: {}, female: {}, male: {} };
     }
@@ -3112,55 +3099,54 @@
       return result;
     }
 
-    function loadRankHistory() {
+    function applySharedRankHistory(row) {
+      state.rankChanges = sanitizeRankGroups(row?.rank_changes);
+      state.rankChangeExpires = sanitizeRankGroups(row?.rank_expires_at);
       try {
-        const saved = JSON.parse(localStorage.getItem(RANK_HISTORY_KEY) || 'null');
-        if (!saved || typeof saved !== 'object') return null;
-        return {
-          snapshot: sanitizeRankGroups(saved.snapshot),
-          changes: sanitizeRankGroups(saved.changes),
-          expiresAt: sanitizeRankGroups(saved.expiresAt)
-        };
-      } catch {
-        return null;
-      }
+        localStorage.removeItem('soop-rank-history-v1');
+      } catch {}
     }
 
-    function mergeRankChanges(retainedChanges, detectedChanges, retainedExpiresAt, currentMaps) {
-      const retained = sanitizeRankGroups(retainedChanges);
-      const detected = sanitizeRankGroups(detectedChanges);
-      const retainedExpiry = sanitizeRankGroups(retainedExpiresAt);
-      const changes = emptyRankGroups();
-      const expiresAt = emptyRankGroups();
-      const now = Date.now();
-
-      for (const scope of Object.keys(changes)) {
-        for (const key of Object.keys(currentMaps[scope] || {})) {
-          const latestDelta = detected[scope]?.[key] || 0;
-          const previousDelta = retained[scope]?.[key] || 0;
-          const previousExpiry = retainedExpiry[scope]?.[key] || 0;
-
-          if (latestDelta) {
-            changes[scope][key] = latestDelta;
-            expiresAt[scope][key] = now + RANK_CHANGE_TTL_MS;
-          } else if (previousDelta && previousExpiry > now) {
-            changes[scope][key] = previousDelta;
-            expiresAt[scope][key] = previousExpiry;
-          }
+    async function fetchSharedRankHistory() {
+      const response = await fetch(
+        `${CONFIG.supabaseUrl}/rest/v1/rank_sync_state?select=rank_changes,rank_expires_at&id=eq.1&_=${Date.now()}`,
+        {
+          headers: { apikey: CONFIG.supabasePublishableKey },
+          cache: 'no-store'
         }
-      }
-      return { changes, expiresAt };
+      );
+      if (!response.ok) throw new Error(`공용 순위 기록 응답 오류 (${response.status})`);
+      const rows = await response.json();
+      const row = Array.isArray(rows) ? rows[0] : null;
+      applySharedRankHistory(row || {});
+      return Boolean(row);
     }
 
-    function saveRankHistory(snapshot, changes, expiresAt) {
+    async function syncSharedRankHistory(currentMaps) {
+      if (!state.isAdmin || !state.adminCode) {
+        return fetchSharedRankHistory();
+      }
+
       try {
-        localStorage.setItem(RANK_HISTORY_KEY, JSON.stringify({
-          snapshot: sanitizeRankGroups(snapshot),
-          changes: sanitizeRankGroups(changes),
-          expiresAt: sanitizeRankGroups(expiresAt)
-        }));
+        const response = await fetch(`${CONFIG.supabaseUrl}/rest/v1/rpc/sync_rank_history`, {
+          method: 'POST',
+          headers: {
+            apikey: CONFIG.supabasePublishableKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            p_admin_code: state.adminCode,
+            p_snapshot: currentMaps
+          })
+        });
+        if (!response.ok) throw new Error(`공용 순위 기록 갱신 오류 (${response.status})`);
+        const payload = await response.json();
+        const row = Array.isArray(payload) ? payload[0] : payload;
+        applySharedRankHistory(row || {});
+        return true;
       } catch (err) {
-        console.warn('순위 변동 저장 실패', err);
+        console.warn('공용 순위 기록 갱신 실패', err);
+        return fetchSharedRankHistory();
       }
     }
 
@@ -3241,15 +3227,6 @@
 
       try {
         const previousKeys = state.comments.length ? new Set(state.comments.map(itemKey)) : null;
-        const memoryPreviousRankMaps = state.comments.length ? buildRankMaps(state.comments) : null;
-        const savedRankHistory = memoryPreviousRankMaps ? null : loadRankHistory();
-        const previousRankMaps = memoryPreviousRankMaps || savedRankHistory?.snapshot || null;
-        const retainedRankChanges = memoryPreviousRankMaps
-          ? state.rankChanges
-          : (savedRankHistory?.changes || state.rankChanges);
-        const retainedRankExpiresAt = memoryPreviousRankMaps
-          ? state.rankChangeExpires
-          : (savedRankHistory?.expiresAt || state.rankChangeExpires);
         const collected = [];
         let lastPage = 1;
 
@@ -3277,6 +3254,8 @@
         state.excludedCommentCount = uniqueComments.reduce((sum, item) => sum + Math.max(0, asNumber(item.replyCount)), 0);
         state.postCommentCount = state.rawCommentCount + state.excludedCommentCount;
         state.comments = applicants.sort(compareRankItems);
+        await loadCloudGenderOverrides();
+        if (seq !== state.loadSeq) return;
         reconcileManualGenderOverrides(state.comments);
         if (state.isAdmin && state.adminCode) syncAllLocalOverridesToCloud();
         if (previousKeys) {
@@ -3286,16 +3265,8 @@
           }
         }
         const currentRankMaps = buildRankMaps(state.comments);
-        const detectedRankChanges = calculateRankChanges(previousRankMaps, currentRankMaps);
-        const mergedRankChanges = mergeRankChanges(
-          retainedRankChanges,
-          detectedRankChanges,
-          retainedRankExpiresAt,
-          currentRankMaps
-        );
-        state.rankChanges = mergedRankChanges.changes;
-        state.rankChangeExpires = mergedRankChanges.expiresAt;
-        saveRankHistory(currentRankMaps, state.rankChanges, state.rankChangeExpires);
+        await syncSharedRankHistory(currentRankMaps);
+        if (seq !== state.loadSeq) return;
         state.updatedAt = new Date();
         state.loading = false;
         if (lastUpdatedText) lastUpdatedText.textContent = `최근 갱신 ${formatTime(state.updatedAt)}`;
