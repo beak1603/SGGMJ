@@ -873,7 +873,7 @@
       transition: background .38s ease;
     }
 
-    /* TOP 100 keeps the normal page background. */
+    /* TOP 99 keeps the normal page background. */
     body.top100-mode {
       background:
         radial-gradient(circle at 8% 5%, rgba(101, 194, 242, .18), transparent 24%),
@@ -1204,7 +1204,7 @@
       background: linear-gradient(180deg, #f39a35 0%, #ffc06d 100%);
     }
 
-    /* Soft gradient pills behind 좋아요순 / TOP 100 */
+    /* Soft gradient pills behind 좋아요순 / TOP 99 */
     .board-title span {
       background: linear-gradient(135deg, rgba(255,255,255,.95) 0%, rgba(237,247,253,.88) 52%, rgba(246,241,252,.86) 100%);
       border-color: rgba(204,224,236,.86);
@@ -1942,7 +1942,7 @@
 
 
 
-    /* ===== TOP 100 gender quota cutoff ===== */
+    /* ===== TOP 99 gender quota cutoff ===== */
     .rank-row.top100-cutoff-row {
       position: relative;
       box-shadow: inset 0 -3px 0 #e5a13a;
@@ -1965,7 +1965,7 @@
 
 
 
-    /* TOP 100 cutoff explanation row */
+    /* TOP 99 cutoff explanation row */
     .top100-cutoff-label {
       height: 34px;
       display: flex;
@@ -2313,7 +2313,7 @@
     }
 
 
-    /* ===== TOP100 exact headcount + single red cutoff bar ===== */
+    /* ===== TOP99 cutoff + single red cutoff bar ===== */
     .rank-row.top100-cutoff-row,
     .female-board .rank-row.top100-cutoff-row,
     .male-board .rank-row.top100-cutoff-row {
@@ -2396,7 +2396,7 @@
           <span id="toggleText">ON</span>
         </button>
 
-        <button id="top10Toggle" class="view-btn" type="button" aria-pressed="false">TOP 100</button>
+        <button id="top10Toggle" class="view-btn" type="button" aria-pressed="false">TOP 99</button>
         <button id="adminBtn" class="admin-btn" type="button" aria-pressed="false">🔒 관리자</button>
       </div>
 
@@ -3041,7 +3041,7 @@
       return map;
     }
 
-    function takeTopRanks(items, limit = 100) {
+    function takeTopRanks(items, limit = 99) {
       const sorted = [...items].sort(compareRankItems);
       if (!state.top10) return sorted;
       return sorted.slice(0, limit);
@@ -3321,7 +3321,7 @@
       const isSearch = Boolean(state.query.trim());
       const rankMap = isSearch ? fullRankMap('unknown') : null;
       const visible = isSearch && state.top10
-        ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 100).sort(compareRankItems)
+        ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 99).sort(compareRankItems)
         : takeTopRanks(items);
       const rankedVisible = isSearch
         ? [...visible].sort(compareRankItems).map(item => ({ item, rank: rankMap.get(itemKey(item)) || 0 }))
@@ -3331,7 +3331,7 @@
       return `<section class="board">
         <div class="board-head">
           <div class="board-title"><strong>신규 신청자</strong><span>${totalCount.toLocaleString()}명</span></div>
-          <div class="board-title"><span>${state.top10 ? 'TOP 100 · ' : ''}좋아요순</span></div>
+          <div class="board-title"><span>${state.top10 ? 'TOP 99 · ' : ''}좋아요순</span></div>
         </div>
         ${state.isAdmin ? `<p class="unknown-note">신규 신청자를 여자 또는 남자로 분류하면 즉시 해당 랭킹으로 이동합니다.</p>` : ''}
         <div class="rows">${rows}</div>
@@ -3344,7 +3344,7 @@
       const isSearch = Boolean(state.query.trim());
       const rankMap = isSearch ? fullRankMap(scope) : null;
       const visible = isSearch && state.top10
-        ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 100).sort(compareRankItems)
+        ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 99).sort(compareRankItems)
         : [...items].sort(compareRankItems);
       const displayCount = totalCount;
       const genderClass = genderDrop === 'female' ? ' female-board' : genderDrop === 'male' ? ' male-board' : '';
@@ -3366,7 +3366,7 @@
       return `<section${dropAttrs}>
         <div class="board-head">
           <div class="board-title"><strong>${esc(title)}</strong><span>${displayCount.toLocaleString()}명</span></div>
-          <div class="board-title"><span>${state.top10 ? 'TOP 100 · ' : ''}좋아요순</span></div>
+          <div class="board-title"><span>${state.top10 ? 'TOP 99 · ' : ''}좋아요순</span></div>
         </div>
         <div class="rows">${rows}</div>
       </section>`;
@@ -3393,10 +3393,10 @@
       const fullMaleCount = fullTagged.filter(x=>x.gender==='male').length;
       const fullUnknownCount = fullTagged.filter(x=>x.gender==='unknown').length;
 
-      // TOP 100 selection guideline: aim for 50 men + 50 women.
+      // TOP 99 selection guideline: aim for up to 50 men, with the remaining slots assigned to women.
       // If there are fewer than 50 male applicants, the shortage is added to the female cutoff.
-      const maleTop100Cutoff = Math.min(50, fullMaleCount);
-      const femaleTop100Cutoff = Math.min(100, 100 - maleTop100Cutoff);
+      const maleTop99Cutoff = Math.min(50, fullMaleCount);
+      const femaleTop99Cutoff = Math.min(99, 99 - maleTop99Cutoff);
       const showGenderCutoff = state.top10 && state.splitGender && !state.query.trim();
       $('#totalCount').textContent = state.comments.length.toLocaleString();
       $('#femaleCount').textContent = fullFemaleCount.toLocaleString();
@@ -3419,11 +3419,11 @@
       if (state.splitGender) {
         const dragHint = state.isAdmin ? `<p class="drag-hint">PC는 드래그 · 모바일은 신청자를 약 0.5초 꾹 누른 뒤 여자/남자 칸으로 옮겨 놓으면 저장됩니다.</p>` : '';
         contentEl.innerHTML = `${dragHint}<div class="split">
-          ${boardHtml('여자 신청자', female, state.query ? '검색 결과가 없습니다.' : '여자로 분류된 신청자가 없습니다.', 'female', 'female', showGenderCutoff ? femaleTop100Cutoff : 0)}
-          ${boardHtml('남자 신청자', male, state.query ? '검색 결과가 없습니다.' : '남자로 분류된 신청자가 없습니다.', 'male', 'male', showGenderCutoff ? maleTop100Cutoff : 0)}
+          ${boardHtml('여자 신청자', female, state.query ? '검색 결과가 없습니다.' : '여자로 분류된 신청자가 없습니다.', 'female', 'female', showGenderCutoff ? femaleTop99Cutoff : 0)}
+          ${boardHtml('남자 신청자', male, state.query ? '검색 결과가 없습니다.' : '남자로 분류된 신청자가 없습니다.', 'male', 'male', showGenderCutoff ? maleTop99Cutoff : 0)}
         </div>${unknownBoard}`;
       } else {
-        const overallCutoff = state.top10 && !state.query.trim() ? 100 : 0;
+        const overallCutoff = state.top10 && !state.query.trim() ? 99 : 0;
         contentEl.innerHTML = `<div class="single">${boardHtml('전체 신청자', tagged.sort(compareRankItems), state.query ? '검색 결과가 없습니다.' : '신청 댓글이 없습니다.', '', 'overall', overallCutoff)}</div>${unknownBoard}`;
       }
     }
@@ -3438,7 +3438,7 @@
     top10Toggle.addEventListener('click', () => {
       state.top10 = !state.top10;
       top10Toggle.setAttribute('aria-pressed', String(state.top10));
-      top10Toggle.textContent = state.top10 ? 'TOP 100 ON' : 'TOP 100';
+      top10Toggle.textContent = state.top10 ? 'TOP 99 ON' : 'TOP 99';
       document.body.classList.toggle('top100-mode', state.top10);
       render();
     });
