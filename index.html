@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#eaf7ff" />
   <meta name="color-scheme" content="only light" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>스까묵자 배그</title>
   <style>
     :root {
@@ -3841,6 +3844,10 @@
     setInterval(updateDeadlineCountdown, 1000);
 
     window.addEventListener('pagehide', () => dismissCurrentNewBadges(false));
+    // Edge 등에서 뒤로가기로 이전 화면 캐시가 복원되면 최신 데이터를 다시 불러옵니다.
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) window.location.reload();
+    });
 
     state.isAdmin = loadAdminSession();
     state.adminCode = loadAdminCodeSession();
