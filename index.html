@@ -1,0 +1,2557 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#eaf7ff" />
+  <title>스까묵자 배그</title>
+  <style>
+    :root {
+      --bg: #f5fbff;
+      --panel: #ffffff;
+      --sky-50: #f2faff;
+      --sky-100: #e2f4ff;
+      --sky-200: #bfe8ff;
+      --sky-300: #8fd8ff;
+      --sky-500: #39aff0;
+      --sky-600: #178ed0;
+      --sky-700: #106c9f;
+      --text: #152534;
+      --muted: #667b8c;
+      --line: #d9ebf5;
+      --shadow: 0 12px 36px rgba(45, 120, 160, .10);
+      --radius: 18px;
+      --female-bg: #fff8fb;
+      --female-head: #fff0f6;
+      --female-line: #f2dce7;
+      --male-bg: #f7fbff;
+      --male-head: #eaf5ff;
+      --male-line: #d7eafb;
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(143,216,255,.22), transparent 30%),
+        linear-gradient(180deg, #f8fcff 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Noto Sans KR", "Apple SD Gothic Neo", Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+
+    .wrap {
+      width: min(1160px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 34px 0 60px;
+    }
+
+    .hero {
+      background: rgba(255,255,255,.94);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 26px 28px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      right: -100px;
+      top: -120px;
+      background: var(--sky-100);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: var(--sky-700);
+      background: var(--sky-100);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    h1 {
+      margin: 12px 0 6px;
+      font-size: clamp(25px, 4vw, 36px);
+      line-height: 1.18;
+      letter-spacing: -.035em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .hero-meta {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat {
+      min-width: 112px;
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      background: var(--sky-50);
+      border-radius: 13px;
+    }
+    .stat .label { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .stat .value { display:block; margin-top: 2px; font-size: 18px; font-weight: 900; }
+
+    .toolbar {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .searchbox {
+      position: relative;
+      min-width: 0;
+    }
+    .searchbox input {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px 0 42px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+      transition: .18s ease;
+    }
+    .searchbox input:focus {
+      border-color: var(--sky-300);
+      box-shadow: 0 0 0 4px rgba(57,175,240,.10);
+    }
+    .searchicon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7d98aa;
+      pointer-events: none;
+    }
+
+    .toggle {
+      height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fff;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 12px 0 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .switch {
+      width: 42px;
+      height: 24px;
+      padding: 3px;
+      border-radius: 999px;
+      background: #cfdde5;
+      transition: .2s ease;
+      display:flex;
+      align-items:center;
+    }
+    .switch i {
+      display:block;
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:#fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,.18);
+      transition: .2s ease;
+    }
+    .toggle[aria-pressed="true"] .switch { background: var(--sky-500); }
+    .toggle[aria-pressed="true"] .switch i { transform: translateX(18px); }
+
+    .linkbtn {
+      height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      padding: 0 18px 0 0;
+      border-radius: 13px;
+      background: var(--sky-500);
+      color: #fff;
+      font-weight: 850;
+      border: 1px solid var(--sky-500);
+      white-space: nowrap;
+    }
+
+    .admin-btn {
+      height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 16px;
+      border-radius: 13px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      font-weight: 850;
+      white-space: nowrap;
+    }
+    .admin-btn:hover { background: var(--sky-50); color: var(--text); }
+    .admin-btn.active {
+      border-color: var(--sky-300);
+      background: var(--sky-50);
+      color: var(--sky-700);
+    }
+
+    .admin-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(21, 37, 52, .28);
+      backdrop-filter: blur(3px);
+    }
+    .admin-modal.open { display: grid; }
+    .admin-dialog {
+      width: min(380px, 100%);
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(21, 37, 52, .20);
+    }
+    .admin-dialog h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+      letter-spacing: -.025em;
+    }
+    .admin-dialog p {
+      margin: 0 0 15px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .admin-code-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      outline: none;
+    }
+    .admin-code-input:focus {
+      border-color: var(--sky-300);
+      box-shadow: 0 0 0 4px rgba(57,175,240,.10);
+    }
+    .admin-error {
+      min-height: 18px;
+      margin-top: 7px;
+      color: #d62f2f;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .admin-dialog-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .admin-dialog-actions button {
+      height: 38px;
+      padding: 0 13px;
+      border-radius: 10px;
+      font-weight: 850;
+    }
+    .admin-cancel { border: 1px solid var(--line); background: #fff; color: var(--muted); }
+    .admin-submit { border: 1px solid var(--sky-500); background: var(--sky-500); color: #fff; }
+
+    .view-btn {
+      height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 13px;
+      border-radius: 13px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      font-weight: 850;
+      white-space: nowrap;
+    }
+    .view-btn:hover { background: var(--sky-50); color: var(--text); }
+    .view-btn[aria-pressed="true"]:hover { filter: brightness(1.03); transform: translateY(-1px); }
+
+    .is-hidden { display: none !important; }
+    .stat.admin-alert {
+      border-color: #ffd7b3;
+      background: #fff9f2;
+    }
+    .stat.admin-alert .value { color: #dd6d1f; }
+    .stat.admin-alert.alerting {
+      box-shadow: 0 0 0 3px rgba(239, 135, 54, .09);
+    }
+
+    .status-right {
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .last-updated {
+      color:#587182;
+      font-weight:800;
+      font-variant-numeric: tabular-nums;
+      white-space:nowrap;
+    }
+
+    .statusbar {
+      margin: 15px 2px 0;
+      min-height: 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .status-left { display:flex; align-items:center; gap:8px; min-width:0; }
+
+    .comment-count-summary {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #526b7a;
+    }
+    .comment-count-summary .count-chip {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      white-space: nowrap;
+    }
+    .comment-count-summary strong {
+      color: var(--text);
+      font-weight: 900;
+    }
+    .comment-count-summary .excluded {
+      border-color: #ffd2d2;
+      background: #fff7f7;
+      color: #b14545;
+    }
+    .comment-count-summary .excluded strong { color:#d62f2f; }
+
+    .dot { width:7px; height:7px; border-radius:50%; background:#aebfc9; flex:0 0 auto; }
+    .dot.live { background:#32bf72; box-shadow: 0 0 0 4px rgba(50,191,114,.10); }
+    .dot.error { background:#e48787; }
+    .refresh {
+      border:0;
+      background:transparent;
+      color: var(--sky-700);
+      font-weight:800;
+      padding:4px 2px;
+    }
+
+    .content { margin-top: 16px; }
+    .drag-hint {
+      margin: 0 2px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .split {
+      display:grid;
+      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+      gap: 14px;
+      /* 두 성별 보드의 높이를 동일하게 유지해, 긴 목록의 맨 아래 행에서도
+         반대편 전체 높이가 드롭 영역으로 작동하도록 합니다. */
+      align-items:stretch;
+    }
+
+    .board.drop-zone {
+      height: 100%;
+    }
+
+    .board {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(45,120,160,.06);
+    }
+
+
+    .female-board {
+      background: var(--female-bg);
+      border-color: var(--female-line);
+    }
+    .female-board .board-head {
+      background: linear-gradient(180deg, var(--female-head), #fff8fb);
+      border-bottom-color: var(--female-line);
+    }
+    .female-board .rank-row {
+      border-bottom-color: #f6e6ee;
+    }
+    .female-board .rank-row:hover {
+      background: #fff2f7;
+    }
+
+    .male-board {
+      background: var(--male-bg);
+      border-color: var(--male-line);
+    }
+    .male-board .board-head {
+      background: linear-gradient(180deg, var(--male-head), #f7fbff);
+      border-bottom-color: var(--male-line);
+    }
+    .male-board .rank-row {
+      border-bottom-color: #e4f0fa;
+    }
+    .male-board .rank-row:hover {
+      background: #eef7ff;
+    }
+
+    .board-head {
+      height: 62px;
+      padding: 0 20px;
+      background: linear-gradient(180deg, var(--sky-50), #fff);
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .board-title { display:flex; align-items:baseline; gap:8px; min-width:0; }
+    .board-title strong { font-size: 16px; letter-spacing:-.02em; }
+    .board-title span { color:var(--muted); font-size:12px; font-weight:750; }
+
+    .rows { min-height: 90px; }
+    .rank-row {
+      min-height: 68px;
+      display:grid;
+      grid-template-columns: 48px 42px minmax(0,1fr) auto;
+      align-items:center;
+      gap:10px;
+      padding: 0 17px;
+      border-bottom: 1px solid #edf4f8;
+      transition: background .15s ease;
+    }
+    .rank-row:last-child { border-bottom:0; }
+    .rank-row:hover { background: #f8fcff; }
+    /* 드래그 가능한 행도 hover 순간부터 일반 손가락 포인터를 사용합니다.
+       grab/grabbing 커서는 OS/브라우저에 따라 테두리가 흐리게 보여 사용하지 않습니다. */
+    .rank-row[draggable="true"] { cursor: default; }
+    .rank-num {
+      width:34px;
+      height:34px;
+      display:grid;
+      place-items:center;
+      border-radius:10px;
+      color:#718796;
+      font-size:13px;
+      font-weight:900;
+      background:#f3f7f9;
+    }
+    .rank-row.top1 .rank-num { background:#fff4c7; color:#9b6a00; }
+    .rank-row.top2 .rank-num { background:#edf2f5; color:#596e7c; }
+    .rank-row.top3 .rank-num { background:#f7e8dc; color:#9a6139; }
+
+    .avatar-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex: 0 0 auto;
+      border: 1px solid rgba(98, 134, 154, .18);
+      background: #eef4f7;
+      display: grid;
+      place-items: center;
+    }
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .avatar-fallback {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      color: #7b93a2;
+      background: linear-gradient(145deg, #edf4f7, #f9fbfc);
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .name {
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-weight:850;
+      font-size: 15px;
+      letter-spacing:-.015em;
+    }
+    .name-link {
+      color: inherit;
+      text-decoration: none;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    .name-link:hover { color: var(--sky-700); text-decoration: underline; text-underline-offset: 3px; }
+    .name-link:focus-visible { box-shadow: 0 0 0 3px rgba(57,175,240,.18); }
+    .new-badge {
+      display:inline-block;
+      margin-left:7px;
+      color:#e53935;
+      font-size:11px;
+      font-weight:950;
+      letter-spacing:-.01em;
+      vertical-align:1px;
+    }
+    .fresh-badge {
+      display:inline-block;
+      margin-left:7px;
+      padding:2px 5px;
+      border-radius:999px;
+      background:#e6f5ff;
+      color:#0d80bc;
+      font-size:10px;
+      font-weight:950;
+      letter-spacing:-.01em;
+      vertical-align:1px;
+    }
+    .rank-move {
+      display:inline-flex;
+      align-items:center;
+      margin-left:6px;
+      font-size:11px;
+      font-weight:950;
+      font-variant-numeric: tabular-nums;
+      vertical-align:1px;
+    }
+    .rank-move.up { color:#16935d; }
+    .rank-move.down { color:#d25c5c; }
+    .undo-gender-btn {
+      width:30px;
+      height:30px;
+      padding:0;
+      display:grid;
+      place-items:center;
+      border:1px solid #dce8ee;
+      border-radius:9px;
+      background:rgba(255,255,255,.82);
+      color:#708695;
+      font-size:15px;
+      font-weight:900;
+      line-height:1;
+    }
+    .undo-gender-btn:hover { background:#fff; color:#d05a5a; border-color:#efcaca; }
+    .rank-row.has-admin-action { grid-template-columns: 48px 42px minmax(0,1fr) auto 30px; }
+    .single .rank-row.has-admin-action { grid-template-columns: 54px 42px minmax(0,1fr) auto 30px; }
+    .likes {
+      min-width: 88px;
+      text-align:right;
+      color:#2f6f92;
+      font-size:18px;
+      font-weight:950;
+      font-variant-numeric: tabular-nums;
+    }
+    .likes .heart { color:#ef5f7c; margin-right:7px; font-size:20px; vertical-align:-1px; }
+
+    .empty {
+      padding: 34px 20px;
+      text-align:center;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.65;
+    }
+
+    .single { display:block; }
+    .single .board { width:100%; }
+    .single .rank-row { grid-template-columns: 54px 42px minmax(0,1fr) auto; min-height:68px; }
+
+    .unknown-section {
+      margin-top: 14px;
+    }
+    .unknown-section .board {
+      border-style: dashed;
+      box-shadow: none;
+    }
+    .unknown-section .board-head {
+      background: linear-gradient(180deg, #f8fbfd, #fff);
+    }
+    .unknown-section .board-title strong {
+      color: #506978;
+    }
+    .unknown-note {
+      margin: 0;
+      padding: 10px 17px;
+      border-bottom: 1px solid #edf4f8;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+      background: #fbfdfe;
+    }
+
+    .unknown-row {
+      min-height: 68px;
+      display:grid;
+      grid-template-columns: 48px 42px minmax(0,1fr) auto auto;
+      align-items:center;
+      gap:10px;
+      padding: 0 17px;
+      border-bottom: 1px solid #edf4f8;
+    }
+    .unknown-row:last-child { border-bottom: 0; }
+    .gender-actions { display:flex; gap:6px; }
+    .gender-btn {
+      height: 32px;
+      padding: 0 11px;
+      border-radius: 9px;
+      border: 1px solid var(--sky-200);
+      background: #fff;
+      color: var(--sky-700);
+      font-size: 12px;
+      font-weight: 850;
+      transition: .15s ease;
+    }
+    .gender-btn:hover { background: var(--sky-50); border-color: var(--sky-300); }
+    .manual-tools {
+      margin-top: 10px;
+      display:flex;
+      justify-content:flex-end;
+    }
+    .reset-btn {
+      border: 1px solid var(--line);
+      background:#fff;
+      color:var(--muted);
+      border-radius:10px;
+      padding:8px 11px;
+      font-size:11px;
+      font-weight:800;
+    }
+    .reset-btn:hover { background:#f8fcff; color:var(--text); }
+
+    .skeleton-row {
+      height:58px;
+      padding:0 17px;
+      display:grid;
+      grid-template-columns:48px 42px 1fr 88px;
+      align-items:center;
+      gap:10px;
+      border-bottom:1px solid #edf4f8;
+    }
+    .sk { height:13px; border-radius:999px; background:linear-gradient(90deg,#eef4f7 25%,#f8fbfc 37%,#eef4f7 63%); background-size:400% 100%; animation:shimmer 1.3s infinite; }
+    .sk.circle { width:34px; height:34px; border-radius:10px; }
+    @keyframes shimmer { 0%{background-position:100% 0}100%{background-position:0 0} }
+
+
+
+    /* Poster-style title inspired by the original content artwork */
+    .poster-title {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      width: fit-content;
+      margin: 0 0 8px;
+      color: inherit;
+      text-shadow: none;
+    }
+    .poster-title::after { display: none; }
+
+    .poster-logo {
+      position: relative;
+      isolation: isolate;
+      display: inline-flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 205px;
+      min-height: 105px;
+      padding: 12px 34px 10px 23px;
+      overflow: hidden;
+      transform: rotate(-1.3deg);
+      clip-path: polygon(2% 11%, 13% 7%, 9% 0, 32% 5%, 47% 0, 63% 5%, 82% 1%, 79% 7%, 100% 4%, 94% 22%, 100% 29%, 95% 41%, 100% 49%, 92% 61%, 98% 70%, 91% 82%, 94% 92%, 72% 88%, 61% 100%, 45% 93%, 28% 99%, 17% 91%, 0 96%, 6% 79%, 1% 67%, 7% 55%, 1% 43%, 7% 31%, 0 22%);
+      background:
+        linear-gradient(165deg, rgba(68,177,237,.34) 0 7%, transparent 8% 18%, rgba(38,147,217,.24) 19% 25%, transparent 26% 100%),
+        linear-gradient(135deg, #0a1520 0%, #102b41 46%, #0c1b2a 74%, #071018 100%);
+      box-shadow: 0 12px 26px rgba(8,35,53,.22);
+    }
+    .poster-logo::before,
+    .poster-logo::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      left: -14px;
+      right: -10px;
+      height: 9px;
+      transform: rotate(-8deg);
+      background: linear-gradient(90deg, transparent 0 3%, #39aee9 6% 61%, rgba(103,202,248,.25) 78%, transparent 92%);
+      opacity: .85;
+    }
+    .poster-logo::before { top: 20px; }
+    .poster-logo::after {
+      top: 55px;
+      height: 5px;
+      transform: rotate(6deg);
+      opacity: .58;
+    }
+    .poster-logo-top,
+    .poster-logo-main {
+      position: relative;
+      z-index: 2;
+      display: block;
+      width: max-content;
+      font-family: "Black Han Sans", "Pretendard Variable", Pretendard, "Noto Sans KR", "Malgun Gothic", sans-serif;
+      font-style: italic;
+      font-weight: 950;
+      line-height: .88;
+      letter-spacing: -.075em;
+      transform: skewX(-7deg);
+      -webkit-text-stroke: .35px rgba(0,0,0,.28);
+    }
+    .poster-logo-top {
+      margin-left: 2px;
+      font-size: 27px;
+      color: #f8fbff;
+      text-shadow:
+        2px 2px 0 #071019,
+        4px 4px 0 rgba(2,10,16,.55),
+        0 0 12px rgba(255,255,255,.12);
+    }
+    .poster-logo-main {
+      margin-top: 5px;
+      margin-left: 25px;
+      font-size: 50px;
+      color: #f3b62f;
+      background: linear-gradient(180deg, #ffd96c 0%, #f3b62f 45%, #d58c15 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(3px 4px 0 #050a0e) drop-shadow(0 5px 3px rgba(0,0,0,.24));
+    }
+    .poster-logo-streak {
+      position: absolute;
+      z-index: 1;
+      pointer-events: none;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(255,197,70,.95), rgba(255,197,70,.18), transparent);
+      transform-origin: left center;
+    }
+    .streak-one { width: 76px; right: 8px; bottom: 21px; transform: rotate(-10deg); }
+    .streak-two { width: 46px; right: 25px; bottom: 13px; transform: rotate(-4deg); opacity: .72; }
+
+    .poster-logo-caption {
+      display: inline-flex;
+      align-items: center;
+      height: 32px;
+      margin-bottom: 8px;
+      padding: 0 13px;
+      border: 1px solid rgba(31,77,104,.16);
+      border-radius: 8px;
+      color: #244a63;
+      background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(229,244,252,.9));
+      box-shadow: 0 5px 14px rgba(38,92,124,.08);
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: -.025em;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 760px) {
+      .wrap { width:min(100% - 18px, 680px); padding-top:16px; }
+      .hero { padding:20px 16px 16px; border-radius:18px; }
+      .toolbar { grid-template-columns:1fr 1fr; }
+      .searchbox { grid-column:1 / -1; }
+      .toggle, .linkbtn, .view-btn { width:100%; padding-left:10px; padding-right:10px; }
+      .admin-btn { width:100%; padding-left:14px; padding-right:14px; }
+      .split { grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
+      .board-head { height:54px; padding:0 10px; }
+      .board-title { gap:5px; }
+      .board-title strong { font-size:13px; }
+      .board-title span { font-size:10px; }
+      .rank-row { grid-template-columns:32px 34px minmax(0,1fr) auto; gap:6px; padding:0 9px; min-height:58px; }
+      .rank-row.has-admin-action { grid-template-columns:32px 34px minmax(0,1fr) auto 26px; }
+      .single .rank-row.has-admin-action { grid-template-columns:32px 34px minmax(0,1fr) auto 26px; }
+      .undo-gender-btn { width:26px; height:26px; border-radius:8px; font-size:13px; }
+      .rank-num { width:28px; height:28px; border-radius:8px; font-size:11px; }
+      .avatar-wrap { width:32px; height:32px; }
+      .avatar-fallback { font-size:11px; }
+      .name { font-size:12px; }
+      .likes { min-width:54px; font-size:14px; }
+      .likes .heart { margin-right:3px; font-size:15px; }
+      .unknown-row { grid-template-columns:30px 34px minmax(0,1fr) auto; gap:6px; padding:8px 9px; }
+      .unknown-row .likes { grid-column:4; grid-row:1; }
+      .unknown-row .gender-actions { grid-column:3 / 5; grid-row:2; justify-content:flex-end; }
+      .gender-btn { height:30px; padding:0 10px; }
+      .hero-meta { gap:6px; }
+      .stat { min-width:calc(33.333% - 4px); padding:9px 10px; }
+      .stat .value { font-size:16px; }
+      .statusbar { align-items:flex-start; }
+      .status-right { gap:7px; }
+      .last-updated { font-size:10px; }
+      .stat.admin-alert { min-width:100%; }
+    }
+
+    @media (max-width: 430px) {
+      .split { gap:6px; }
+      .rank-row { grid-template-columns:28px 30px minmax(0,1fr) auto; padding:0 7px; gap:5px; }
+      .rank-row.has-admin-action, .single .rank-row.has-admin-action { grid-template-columns:28px 30px minmax(0,1fr) auto 24px; }
+      .undo-gender-btn { width:24px; height:24px; font-size:12px; }
+      .rank-num { width:25px; height:25px; }
+      .avatar-wrap { width:28px; height:28px; }
+      .likes { min-width:44px; font-size:13px; }
+      .likes .heart { font-size:13px; margin-right:2px; }
+    }
+
+
+    /* ===== Visual refresh: clean + colorful, existing behavior unchanged ===== */
+    :root {
+      --bg: #f4f9fd;
+      --panel: #ffffff;
+      --sky-50: #f2f9ff;
+      --sky-100: #e4f3ff;
+      --sky-200: #c5e6fb;
+      --sky-300: #91d3f7;
+      --sky-500: #45ace7;
+      --sky-600: #258fc9;
+      --sky-700: #176d9a;
+      --text: #183047;
+      --muted: #6f8292;
+      --line: #dceaf3;
+      --shadow: 0 18px 48px rgba(47, 105, 139, .10);
+      --female-bg: #fff9fb;
+      --female-head: #fff0f5;
+      --female-line: #f1cfdd;
+      --male-bg: #f8fbff;
+      --male-head: #edf7ff;
+      --male-line: #cce6f7;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 8% 5%, rgba(101, 194, 242, .18), transparent 24%),
+        radial-gradient(circle at 92% 0%, rgba(255, 163, 195, .13), transparent 22%),
+        linear-gradient(180deg, #f8fcff 0%, #f3f8fc 52%, #f7fbfd 100%);
+      transition: background .38s ease;
+    }
+
+    /* TOP 100 keeps the normal page background. */
+    body.top100-mode {
+      background:
+        radial-gradient(circle at 8% 5%, rgba(101, 194, 242, .18), transparent 24%),
+        radial-gradient(circle at 92% 0%, rgba(255, 163, 195, .13), transparent 22%),
+        linear-gradient(180deg, #f8fcff 0%, #f3f8fc 52%, #f7fbfd 100%);
+    }
+
+    .wrap { width: min(1220px, calc(100% - 32px)); padding-top: 28px; }
+
+    .hero {
+      padding: 28px 30px 24px;
+      border-color: rgba(181, 218, 239, .82);
+      background:
+        linear-gradient(112deg, rgba(255,255,255,.98) 0%, rgba(244,250,255,.96) 64%, rgba(237,247,255,.96) 100%);
+      box-shadow: 0 20px 55px rgba(39, 100, 136, .11);
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      left: -190px;
+      bottom: -250px;
+      background: radial-gradient(circle, rgba(255,175,204,.19), rgba(255,175,204,0) 68%);
+      pointer-events: none;
+    }
+    .hero::after {
+      width: 300px;
+      height: 300px;
+      right: -115px;
+      top: -165px;
+      background: radial-gradient(circle, rgba(102,197,244,.27), rgba(102,197,244,0) 67%);
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      margin-top: 2px;
+      font-size: clamp(28px, 4vw, 39px);
+      color: #15344d;
+      text-shadow: 0 1px 0 rgba(255,255,255,.8);
+    }
+    h1::after {
+      content: "";
+      display: block;
+      width: 48px;
+      height: 5px;
+      margin-top: 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #58b9ee, #94d8f9);
+      box-shadow: 0 4px 12px rgba(69,172,231,.22);
+    }
+
+    .hero-meta { gap: 10px; }
+    .stat {
+      position: relative;
+      overflow: hidden;
+      min-width: 124px;
+      padding: 13px 15px;
+      border-radius: 15px;
+      background: rgba(255,255,255,.80);
+      box-shadow: 0 5px 16px rgba(46, 103, 136, .055);
+    }
+    .stat::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: #8bcdf2;
+    }
+    .hero-meta .stat:nth-child(1) { background: linear-gradient(135deg, #ffffff, #f3fbff); }
+    .hero-meta .stat:nth-child(1)::before { background: linear-gradient(#62bce9,#8bd4f8); }
+    .hero-meta .stat:nth-child(2) { background: linear-gradient(135deg, #fff, #fff3f7); border-color:#f1d9e3; }
+    .hero-meta .stat:nth-child(2)::before { background: linear-gradient(#f08bab,#f4b1c7); }
+    .hero-meta .stat:nth-child(3) { background: linear-gradient(135deg, #fff, #f0f8ff); border-color:#d4e8f5; }
+    .hero-meta .stat:nth-child(3)::before { background: linear-gradient(#57aee0,#82c9ef); }
+    .stat .label { font-size: 11px; letter-spacing: .01em; }
+    .stat .value { font-size: 20px; color:#173a55; }
+
+    .toolbar { gap: 9px; }
+    .searchbox input,
+    .toggle,
+    .view-btn,
+    .admin-btn {
+      border-color: #d8e8f1;
+      box-shadow: 0 4px 14px rgba(52, 105, 134, .045);
+    }
+    .searchbox input { background: rgba(255,255,255,.95); }
+    .searchbox input:hover { border-color:#c5dfed; }
+    .toggle:hover, .view-btn:hover, .admin-btn:hover { transform: translateY(-1px); }
+    .toggle, .view-btn, .admin-btn, .linkbtn { transition: .16s ease; }
+    .toggle[aria-pressed="true"] {
+      border-color:#acd8ef;
+      background: linear-gradient(180deg,#fff,#f2faff);
+    }
+    .view-btn[aria-pressed="true"] {
+      border-color: var(--sky-300);
+      background: linear-gradient(180deg, #eaf7ff, #dff3ff);
+      color: var(--sky-700);
+      box-shadow: 0 5px 15px rgba(57,175,240,.10);
+    }
+    .linkbtn {
+      background: linear-gradient(135deg, #46ace5, #2696d3);
+      border-color: #349fd9;
+      box-shadow: 0 7px 18px rgba(39,147,204,.18);
+    }
+    .linkbtn:hover { transform: translateY(-1px); filter: brightness(1.02); }
+
+    .comment-count-summary .count-chip {
+      background: rgba(255,255,255,.78);
+      box-shadow: 0 3px 11px rgba(53,108,138,.04);
+    }
+
+    .content { margin-top: 18px; }
+    .split { gap: 16px; }
+    .board {
+      border-radius: 20px;
+      box-shadow: 0 12px 34px rgba(45, 104, 137, .075);
+    }
+    .female-board {
+      border-color: #eccbd8;
+      box-shadow: 0 12px 34px rgba(194, 88, 125, .07);
+    }
+    .male-board {
+      border-color: #c5e1f2;
+      box-shadow: 0 12px 34px rgba(56, 130, 175, .075);
+    }
+
+    .board-head {
+      height: 68px;
+      padding: 0 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .board-head::after {
+      content: "";
+      position: absolute;
+      right: -28px;
+      top: -52px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(111,198,242,.10);
+      pointer-events: none;
+    }
+    .female-board .board-head {
+      background: linear-gradient(105deg, #fff3f7 0%, #fff8fb 70%, #fff 100%);
+      border-bottom-color: #efd5df;
+    }
+    .female-board .board-head::before {
+      content:"";
+      position:absolute;
+      left:0; top:0; bottom:0;
+      width:5px;
+      background:linear-gradient(#ef8eae,#f4b8ca);
+    }
+    .female-board .board-head::after { background: rgba(241,142,174,.11); }
+    .male-board .board-head {
+      background: linear-gradient(105deg, #eef8ff 0%, #f8fcff 70%, #fff 100%);
+      border-bottom-color: #d4e8f5;
+    }
+    .male-board .board-head::before {
+      content:"";
+      position:absolute;
+      left:0; top:0; bottom:0;
+      width:5px;
+      background:linear-gradient(#54afe1,#8bcdf0);
+    }
+    .board-title { position:relative; z-index:1; }
+    .board-title strong { font-size: 17px; color:#1c3a51; }
+    .female-board .board-title strong { color:#a84d70; }
+    .male-board .board-title strong { color:#2a739e; }
+    .board-title span {
+      padding: 4px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(210,227,237,.82);
+      color:#6a7e8c;
+      font-size:11px;
+    }
+
+    .rank-row {
+      min-height: 72px;
+      padding: 0 20px;
+      border-bottom-color: rgba(220,234,243,.78);
+      transition: background .16s ease, transform .16s ease, box-shadow .16s ease;
+    }
+    .female-board .rank-row:nth-child(even) { background: rgba(255,247,250,.42); }
+    .male-board .rank-row:nth-child(even) { background: rgba(243,249,254,.48); }
+    .rank-row:hover {
+      position: relative;
+      z-index: 2;
+      transform: translateX(2px);
+      box-shadow: inset 3px 0 0 rgba(75,170,221,.30);
+    }
+    .female-board .rank-row:hover {
+      background:#fff1f6;
+      box-shadow: inset 3px 0 0 rgba(235,126,163,.42);
+    }
+    .male-board .rank-row:hover {
+      background:#edf7ff;
+      box-shadow: inset 3px 0 0 rgba(75,170,221,.42);
+    }
+
+    .rank-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(145deg,#f1f6f9,#e9f1f5);
+      border: 1px solid rgba(205,220,228,.8);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+    .rank-row.top1 .rank-num {
+      color:#8a5c00;
+      border-color:#f1d57a;
+      background: linear-gradient(145deg,#fff6cc,#ffeaa0);
+      box-shadow: 0 4px 12px rgba(218,168,48,.15);
+    }
+    .rank-row.top2 .rank-num {
+      color:#536877;
+      border-color:#d6e0e6;
+      background: linear-gradient(145deg,#f8fafb,#e6edf1);
+    }
+    .rank-row.top3 .rank-num {
+      color:#945a35;
+      border-color:#ead0bd;
+      background: linear-gradient(145deg,#f9ece2,#efd7c6);
+    }
+
+    .avatar-wrap {
+      width: 42px;
+      height: 42px;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px rgba(91,136,162,.18), 0 4px 11px rgba(52,100,128,.09);
+    }
+    .female-board .avatar-wrap { box-shadow: 0 0 0 1px rgba(222,137,165,.27), 0 4px 11px rgba(167,77,108,.08); }
+    .male-board .avatar-wrap { box-shadow: 0 0 0 1px rgba(99,171,211,.28), 0 4px 11px rgba(49,117,157,.08); }
+
+    .name { font-size: 15.5px; color:#243e51; }
+    .name-link:hover { text-decoration: none; color:#1686c2; }
+    .female-board .name-link:hover { color:#c95d84; }
+
+    .likes {
+      min-width: 98px;
+      padding: 8px 11px;
+      border-radius: 12px;
+      text-align: center;
+      color:#236a91;
+      font-size: 19px;
+      background: linear-gradient(180deg, rgba(241,249,254,.92), rgba(234,246,252,.82));
+      border: 1px solid #d5eaf5;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.85);
+    }
+    .likes .heart { font-size: 21px; color:#ed5f80; }
+    .female-board .likes {
+      color:#a64f70;
+      background: linear-gradient(180deg,#fff7fa,#fff0f5);
+      border-color:#efd8e2;
+    }
+    .female-board .likes .heart { color:#e85f89; }
+    .male-board .likes {
+      color:#246f98;
+      background: linear-gradient(180deg,#f7fcff,#ebf7ff);
+      border-color:#d1e8f6;
+    }
+
+    .fresh-badge {
+      background: linear-gradient(180deg,#e9f7ff,#dff2ff);
+      border:1px solid #c8e7f8;
+      box-shadow: 0 2px 6px rgba(55,149,198,.07);
+    }
+    .new-badge { text-shadow: 0 1px 0 #fff; }
+
+    .unknown-section .board {
+      border-style: solid;
+      border-color:#eadfc9;
+      background:#fffdf9;
+      box-shadow:0 10px 26px rgba(134,105,54,.055);
+    }
+    .unknown-section .board-head {
+      background: linear-gradient(105deg,#fff9ed,#fffdf8 70%,#fff);
+      border-bottom-color:#eee2ce;
+    }
+    .unknown-section .board-head::before {
+      content:"";
+      position:absolute; left:0; top:0; bottom:0; width:5px;
+      background:linear-gradient(#e8b75d,#f0cf8a);
+    }
+    .unknown-section .board-head::after {
+      background: linear-gradient(135deg, rgba(255, 226, 166, .34), rgba(244, 177, 77, .13));
+    }
+    .unknown-section .board-title strong { color:#8d6a2c; }
+    .unknown-note { background:#fffaf1; border-bottom-color:#eee4d4; }
+    .unknown-row:nth-child(even) { background:rgba(255,249,238,.45); }
+
+    .admin-dialog {
+      border-radius:22px;
+      box-shadow:0 28px 80px rgba(24,61,83,.22);
+      border-color:#d5e5ef;
+    }
+    .admin-submit { background:linear-gradient(135deg,#48afe8,#2c96d2); border-color:#349dd8; }
+
+    /* Requested visual refinements */
+    .title-brand {
+      font-family: "Pretendard Variable", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      font-weight: 950;
+      letter-spacing: -.055em;
+      color: #101820;
+      text-shadow: none;
+    }
+
+    /* Overall applicants: green */
+    .hero-meta .stat:nth-child(1) {
+      background: linear-gradient(135deg, #ffffff 0%, #f1fbf5 58%, #eaf8ef 100%);
+      border-color: #d2eadb;
+    }
+    .hero-meta .stat:nth-child(1)::before {
+      background: linear-gradient(180deg, #38b86a 0%, #76d59b 100%);
+    }
+    .hero-meta .stat:nth-child(1) .label { color: #4c7760; }
+    .hero-meta .stat:nth-child(1) .value { color: #217647; }
+
+    /* Unclassified admin stat: orange left rail */
+    .stat.admin-alert::before {
+      background: linear-gradient(180deg, #f39a35 0%, #ffc06d 100%);
+    }
+
+    /* Soft gradient pills behind 좋아요순 / TOP 100 */
+    .board-title span {
+      background: linear-gradient(135deg, rgba(255,255,255,.95) 0%, rgba(237,247,253,.88) 52%, rgba(246,241,252,.86) 100%);
+      border-color: rgba(204,224,236,.86);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.88), 0 3px 10px rgba(74,130,160,.055);
+    }
+    .female-board .board-title span {
+      background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(255,240,246,.88));
+      border-color: rgba(238,210,221,.9);
+    }
+    .male-board .board-title span {
+      background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(232,246,255,.9));
+      border-color: rgba(204,228,242,.92);
+    }
+    .unknown-section .board-title span {
+      background: linear-gradient(135deg, #fffdf8 0%, #fff3d8 48%, #ffe7bd 100%);
+      border-color: rgba(225, 177, 96, .48);
+      color: #9a641f;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 3px 10px rgba(184,125,42,.08);
+    }
+
+    @media (max-width: 760px) {
+      .poster-title { gap:9px; align-items:center; }
+      .poster-logo { min-width:158px; min-height:82px; padding:10px 27px 8px 18px; }
+      .poster-logo-top { font-size:21px; }
+      .poster-logo-main { margin-top:4px; margin-left:18px; font-size:39px; }
+      .poster-logo-caption { height:28px; margin-bottom:3px; padding:0 9px; font-size:11px; }
+      .wrap { width:min(100% - 18px, 680px); }
+      .hero { padding:22px 17px 18px; }
+      h1 { font-size:26px; }
+      h1::after { width:40px; height:4px; margin-top:9px; }
+      .stat { min-width:calc(33.333% - 4px); }
+      .board { border-radius:16px; }
+      .board-head { height:58px; padding:0 11px; }
+      .board-title strong { font-size:13px; }
+      .board-title span { padding:2px 5px; font-size:9px; }
+      .rank-row { min-height:60px; transform:none !important; padding:0 9px; }
+      .likes { min-width:58px; padding:5px 6px; border-radius:9px; font-size:14px; }
+      .likes .heart { font-size:15px; margin-right:3px; }
+      .avatar-wrap { width:32px; height:32px; border-width:1px; }
+    }
+
+  
+
+    /* Title graphic refresh */
+    .poster-title,
+    .poster-logo,
+    .poster-logo-top,
+    .poster-logo-main,
+    .poster-logo-streak,
+    .poster-logo-caption { all: unset; }
+
+    .poster-title-graphic {
+      margin: 0 0 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      line-height: 0;
+    }
+    .poster-title-img {
+      display: block;
+      width: min(100%, 340px);
+      height: auto;
+      image-rendering: -webkit-optimize-contrast;
+      filter: drop-shadow(0 10px 22px rgba(12, 27, 43, .18));
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    @media (max-width: 720px) {
+      .poster-title-graphic { margin-bottom: 8px; }
+      .poster-title-img { width: min(100%, 280px); }
+    }
+
+  
+
+    /* ===== Header cleanup: keep ranking boards untouched ===== */
+    .wrap {
+      padding-top: 18px;
+    }
+
+    .page-topline {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin: 0 0 6px;
+    }
+    .source-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid #cfe4f0;
+      border-radius: 11px;
+      background: rgba(255,255,255,.74);
+      color: #397b9f;
+      font-size: 12px;
+      font-weight: 850;
+      text-decoration: none;
+      box-shadow: 0 3px 10px rgba(38,94,125,.05);
+      transition: .15s ease;
+    }
+    .source-link:hover {
+      background: #fff;
+      border-color: #acd6ea;
+      color: #176d9a;
+      transform: translateY(-1px);
+    }
+
+    .hero {
+      overflow: visible;
+      padding: 2px 0 18px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .hero::before,
+    .hero::after {
+      display: none !important;
+      content: none !important;
+    }
+
+    /* Kill the old generic H1 accent bar that appeared next to/below the graphic. */
+    .poster-title-graphic::after,
+    h1.poster-title-graphic::after {
+      display: none !important;
+      content: none !important;
+    }
+    .poster-title-graphic {
+      display: block;
+      width: fit-content;
+      max-width: 100%;
+      margin: -2px 0 2px;
+      padding: 0;
+      line-height: 0;
+    }
+    .poster-title-img {
+      display: block;
+      width: min(100%, 380px);
+      height: auto;
+      margin: 0;
+      filter: drop-shadow(0 9px 18px rgba(12,27,43,.12));
+    }
+
+    /* Statistics become one clean text row instead of four nested cards. */
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 2px 0 18px;
+      padding: 0;
+    }
+    .hero-meta .stat,
+    .hero-meta .stat:nth-child(n) {
+      min-width: 0;
+      display: inline-flex;
+      flex-direction: row;
+      align-items: baseline;
+      gap: 7px;
+      padding: 0 20px 0 0;
+      border: 0;
+      border-left: 0;
+      border-radius: 0;
+      background: transparent !important;
+      box-shadow: none;
+      overflow: visible;
+    }
+    .hero-meta .stat:first-child { padding-left: 0; border-left: 0; }
+    .hero-meta .stat::before { display: none !important; content: none !important; }
+    .hero-meta .stat .label {
+      color: #7b8d99;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .hero-meta .stat .value {
+      font-size: 22px;
+      font-weight: 950;
+      line-height: 1;
+      color: #183047;
+    }
+    .hero-meta .stat:nth-child(1) .value { color: #238150; }
+    .hero-meta .stat:nth-child(2) .value { color: #c45d82; }
+    .hero-meta .stat:nth-child(3) .value { color: #2b7eaa; }
+    .hero-meta .admin-alert .value { color: #d68228; }
+
+    .toolbar {
+      margin-top: 0;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    /* Status and comment counts are information rows, not more cards/chips. */
+    .statusbar {
+      margin-top: 14px;
+      padding: 11px 0 5px;
+      border: 0;
+      border-top: 1px solid #dfebf2;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .comment-count-summary {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0;
+      margin-top: 7px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .comment-count-summary .count-chip,
+    .comment-count-summary .count-chip.excluded {
+      position: relative;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      padding: 0 18px 0 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: #7b8d99;
+    }
+    .comment-count-summary .count-chip:first-child { padding-left: 0; }
+    .comment-count-summary .count-chip + .count-chip::before { display: none; content: none; }
+    .comment-count-summary .count-chip strong { color: #36586d; font-size: 13px; }
+    .comment-count-summary .count-chip.excluded strong { color: #ce7a2b; }
+
+    @media (max-width: 720px) {
+      .wrap { padding-top: 12px; }
+      .page-topline { margin-bottom: 2px; }
+      .source-link { min-height: 34px; padding: 0 11px; font-size: 11px; }
+      .hero { padding-top: 0; }
+      .poster-title-img { width: min(100%, 320px); }
+      .hero-meta { margin: 0 0 14px; row-gap: 8px; }
+      .hero-meta .stat,
+      .hero-meta .stat:nth-child(n) { padding: 0 10px; }
+      .hero-meta .stat:first-child { padding-left: 0; }
+      .hero-meta .stat .label { font-size: 10px; }
+      .hero-meta .stat .value { font-size: 18px; }
+      .comment-count-summary { row-gap: 5px; }
+      .comment-count-summary .count-chip,
+      .comment-count-summary .count-chip.excluded { padding: 0 8px; font-size: 10px; }
+      .comment-count-summary .count-chip:first-child { padding-left: 0; }
+    }
+
+  
+
+    /* Larger top information text */
+    .hero-meta .stat .label {
+      font-size: 15px !important;
+      font-weight: 850 !important;
+      letter-spacing: -0.01em;
+    }
+    .hero-meta .stat .value {
+      font-size: 29px !important;
+      font-weight: 950 !important;
+    }
+    .comment-count-summary,
+    .comment-count-summary .count-chip,
+    .comment-count-summary .count-chip.excluded {
+      font-size: 14px !important;
+      font-weight: 850 !important;
+    }
+    .comment-count-summary .count-chip strong {
+      font-size: 17px !important;
+      font-weight: 950 !important;
+    }
+    .statusbar {
+      font-size: 13px !important;
+      font-weight: 700;
+    }
+
+    @media (max-width: 720px) {
+      .hero-meta .stat .label { font-size: 12px !important; }
+      .hero-meta .stat .value { font-size: 22px !important; }
+      .comment-count-summary,
+      .comment-count-summary .count-chip,
+      .comment-count-summary .count-chip.excluded { font-size: 11px !important; }
+      .comment-count-summary .count-chip strong { font-size: 13px !important; }
+      .statusbar { font-size: 11px !important; }
+    }
+
+  
+
+    /* Clean single-line site title */
+    .poster-title-graphic,
+    .poster-title-img { display: none !important; }
+    .site-title,
+    .site-title::before,
+    .site-title::after,
+    .site-title-main::before,
+    .site-title-main::after,
+    .site-title-game::before,
+    .site-title-game::after {
+      content: none !important;
+    }
+    .site-title {
+      margin: 4px 0 20px;
+      padding: 0;
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      white-space: nowrap;
+      font-family: "Black Han Sans", "Arial Black", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+      font-size: clamp(46px, 5.4vw, 74px);
+      font-weight: 900;
+      line-height: .96;
+      letter-spacing: -0.075em;
+      text-shadow: none;
+    }
+    .site-title-main,
+    .site-title-game {
+      display: inline-block;
+      transform: skewX(-9deg);
+      transform-origin: center bottom;
+      user-select: none;
+    }
+    .site-title-main {
+      color: #1b3f5a;
+      -webkit-text-stroke: 1px rgba(255,255,255,.55);
+      text-shadow:
+        0 1px 0 rgba(255,255,255,.8),
+        0 3px 0 rgba(20,53,77,.08),
+        0 8px 18px rgba(17,45,66,.10);
+    }
+    .site-title-game {
+      background: linear-gradient(180deg, #ffe69d 0%, #f5c84c 46%, #e2a320 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-stroke: 1.2px rgba(120, 80, 10, .25);
+      filter: drop-shadow(0 4px 10px rgba(197, 141, 30, .18));
+    }
+    @media (max-width: 720px) {
+      .site-title {
+        margin: 4px 0 14px;
+        gap: 8px;
+        font-size: clamp(34px, 11vw, 52px);
+      }
+    }
+
+  
+    /* Simple site title */
+    .site-title,
+    .site-title::before,
+    .site-title::after,
+    .site-title *::before,
+    .site-title *::after {
+      content: none !important;
+    }
+    .site-title {
+      margin: 6px 0 20px !important;
+      padding: 0 !important;
+      display: block !important;
+      white-space: normal !important;
+      font-family: Arial, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif !important;
+      font-size: clamp(34px, 4.2vw, 54px) !important;
+      font-weight: 400 !important;
+      line-height: 1.15 !important;
+      letter-spacing: -0.04em !important;
+      color: #111 !important;
+      background: none !important;
+      text-shadow: none !important;
+      filter: none !important;
+      transform: none !important;
+      -webkit-text-stroke: 0 !important;
+    }
+    .site-title strong,
+    .site-title span {
+      display: inline !important;
+      color: #111 !important;
+      background: none !important;
+      text-shadow: none !important;
+      filter: none !important;
+      transform: none !important;
+      -webkit-text-stroke: 0 !important;
+    }
+    .site-title strong { font-weight: 900 !important; }
+    .site-title span { font-weight: 400 !important; }
+    @media (max-width: 720px) {
+      .site-title {
+        margin-bottom: 14px !important;
+        font-size: clamp(28px, 8.5vw, 40px) !important;
+      }
+    }
+
+  
+
+    /* Rank spacing: comfortable left inset and clear space after the rank badge */
+    .rank-row {
+      grid-template-columns: 42px 42px minmax(0,1fr) auto;
+      column-gap: 14px;
+      padding-left: 22px;
+      padding-right: 20px;
+    }
+    .rank-row.has-admin-action {
+      grid-template-columns: 42px 42px minmax(0,1fr) auto 30px;
+    }
+    .single .rank-row {
+      grid-template-columns: 46px 42px minmax(0,1fr) auto;
+    }
+    .single .rank-row.has-admin-action {
+      grid-template-columns: 46px 42px minmax(0,1fr) auto 30px;
+    }
+    .rank-num {
+      justify-self: start;
+    }
+    .unknown-row {
+      grid-template-columns: 42px 42px minmax(0,1fr) auto auto;
+      column-gap: 14px;
+      padding-left: 22px;
+      padding-right: 20px;
+    }
+
+    @media (max-width: 720px) {
+      .rank-row {
+        grid-template-columns: 34px 34px minmax(0,1fr) auto;
+        column-gap: 9px;
+        padding-left: 12px;
+        padding-right: 9px;
+      }
+      .rank-row.has-admin-action,
+      .single .rank-row.has-admin-action {
+        grid-template-columns: 34px 34px minmax(0,1fr) auto 26px;
+      }
+      .single .rank-row {
+        grid-template-columns: 34px 34px minmax(0,1fr) auto;
+      }
+      .unknown-row {
+        grid-template-columns: 34px 34px minmax(0,1fr) auto;
+        column-gap: 9px;
+        padding-left: 12px;
+        padding-right: 9px;
+      }
+    }
+
+  
+
+    /* Smooth control interactions */
+    .toggle,
+    .view-btn,
+    .admin-btn,
+    .source-link,
+    .refresh,
+    .gender-btn,
+    .reset-btn,
+    .undo-gender-btn,
+    .admin-cancel,
+    .admin-submit {
+      transition:
+        background-color 260ms cubic-bezier(.22,.61,.36,1),
+        background 260ms cubic-bezier(.22,.61,.36,1),
+        border-color 260ms cubic-bezier(.22,.61,.36,1),
+        color 220ms ease,
+        box-shadow 260ms ease,
+        transform 160ms cubic-bezier(.2,.8,.2,1),
+        filter 220ms ease !important;
+      will-change: transform;
+    }
+
+    .toggle:active,
+    .view-btn:active,
+    .admin-btn:active,
+    .source-link:active,
+    .refresh:active,
+    .gender-btn:active,
+    .reset-btn:active,
+    .undo-gender-btn:active,
+    .admin-cancel:active,
+    .admin-submit:active {
+      transform: translateY(1px) scale(.965) !important;
+      transition-duration: 80ms !important;
+    }
+
+    .switch {
+      transition: background-color 300ms cubic-bezier(.22,.61,.36,1), box-shadow 300ms ease !important;
+    }
+    .switch i {
+      transition: transform 300ms cubic-bezier(.34,1.35,.64,1), box-shadow 220ms ease !important;
+    }
+
+    .toggle[aria-pressed="true"],
+    .view-btn[aria-pressed="true"],
+    .admin-btn.active {
+      transition-duration: 300ms !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .toggle,
+      .view-btn,
+      .admin-btn,
+      .source-link,
+      .refresh,
+      .gender-btn,
+      .reset-btn,
+      .undo-gender-btn,
+      .admin-cancel,
+      .admin-submit,
+      .switch,
+      .switch i {
+        transition: none !important;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="page-topline">
+      <a class="source-link" href="https://www.sooplive.com/station/gosegu2/post/204391425" target="_blank" rel="noopener noreferrer">원본 게시글 ↗</a>
+    </div>
+    <section class="hero">
+      <h1 class="site-title" aria-label="스까묵자 배그 신청자 랭킹">
+        <strong>스까묵자</strong><span> 배그 신청자 랭킹</span>
+      </h1>
+      <div class="hero-meta" aria-label="참가자 통계">
+        <div class="stat"><span class="label">전체 신청자</span><span class="value" id="totalCount">-</span></div>
+        <div class="stat"><span class="label">여자</span><span class="value" id="femaleCount">-</span></div>
+        <div class="stat"><span class="label">남자</span><span class="value" id="maleCount">-</span></div>
+        <div id="unknownAdminStat" class="stat admin-alert is-hidden"><span class="label">미분류</span><span class="value" id="unknownCount">-</span></div>
+      </div>
+
+      <div class="toolbar">
+        <label class="searchbox">
+          <span class="searchicon">⌕</span>
+          <input id="searchInput" type="search" placeholder="닉네임 검색" autocomplete="off" />
+        </label>
+
+        <button id="genderToggle" class="toggle" type="button" aria-pressed="true">
+          <span>남녀 구분</span>
+          <span class="switch" aria-hidden="true"><i></i></span>
+          <span id="toggleText">ON</span>
+        </button>
+
+        <button id="top10Toggle" class="view-btn" type="button" aria-pressed="false">TOP 100</button>
+        <button id="adminBtn" class="admin-btn" type="button" aria-pressed="false">🔒 관리자</button>
+      </div>
+
+      <div class="statusbar">
+        <div class="status-left"><span id="statusDot" class="dot"></span><span id="statusText">댓글 데이터를 불러오는 중입니다.</span></div>
+        <div class="status-right"><span id="lastUpdatedText" class="last-updated">최근 갱신 -</span><button class="refresh" id="refreshBtn" type="button">새로고침</button></div>
+      </div>
+
+      <div class="comment-count-summary" aria-label="댓글 집계 현황">
+        <span class="count-chip">게시글 댓글갯수 <strong id="postCommentCount">-</strong>개</span>
+        <span class="count-chip">실제 신청댓글 <strong id="applicationCommentCount">-</strong>개</span>
+        <span class="count-chip excluded">제외댓글(대댓글 등) <strong id="excludedCommentCount">-</strong>개</span>
+      </div>
+    </section>
+
+    <section id="content" class="content" aria-live="polite"></section>
+  </main>
+
+  <div id="adminModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+    <div class="admin-dialog">
+      <h2 id="adminModalTitle">관리자 인증</h2>
+      <p>관리자 코드를 입력하면 성별 분류 기능을 사용할 수 있습니다.</p>
+      <input id="adminCodeInput" class="admin-code-input" type="password" placeholder="관리자 코드" autocomplete="off" />
+      <div id="adminError" class="admin-error" aria-live="polite"></div>
+      <div class="admin-dialog-actions">
+        <button id="adminCancelBtn" class="admin-cancel" type="button">취소</button>
+        <button id="adminSubmitBtn" class="admin-submit" type="button">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      channelId: 'gosegu2',
+      postId: '204391425',
+      maxPages: 100,
+      // 코드에 고정할 예외값이 필요할 때 사용합니다. 일반 수동 분류는 브라우저에 자동 저장됩니다.
+      genderOverrides: {},
+      // 직접 API 호출이 브라우저 정책으로 막힐 때 사용할 프록시 주소. 기본값은 비워둡니다.
+      proxyBase: '',
+      adminCodeHash: '0f65f55c87c47704194741c1dd4aa83401188ffea90cd881e0733059481dcdba'
+    };
+
+    const state = {
+      comments: [],
+      splitGender: true,
+      query: '',
+      loading: true,
+      error: null,
+      updatedAt: null,
+      rawCommentCount: 0,
+      postCommentCount: 0,
+      excludedCommentCount: 0,
+      manualGenderOverrides: {},
+      // 드래그 앤 드롭으로 이번 페이지에서 성별을 옮긴 신청자만 표시합니다.
+      // localStorage에 저장하지 않으므로 페이지 새로고침 시 자동으로 비워집니다.
+      newDraggedApplicants: new Set(),
+      // 페이지가 열린 뒤 새로 추가된 신청자. 새로고침하면 초기화됩니다.
+      newApplicants: new Set(),
+      // 직전 데이터 갱신 대비 순위 변동. API 갱신 때만 새로 계산합니다.
+      rankChanges: { overall: {}, female: {}, male: {} },
+      top10: false,
+      loadSeq: 0,
+      isAdmin: false
+    };
+
+    const STORAGE_KEY = 'soop-rank-manual-gender-v1';
+    const ADMIN_SESSION_KEY = 'soop-rank-admin-session-v1';
+
+    const $ = (sel) => document.querySelector(sel);
+    const contentEl = $('#content');
+    const toggleEl = $('#genderToggle');
+    const toggleText = $('#toggleText');
+    const searchInput = $('#searchInput');
+    const statusText = $('#statusText');
+    const statusDot = $('#statusDot');
+    const postCommentCountEl = $('#postCommentCount');
+    const applicationCommentCountEl = $('#applicationCommentCount');
+    const excludedCommentCountEl = $('#excludedCommentCount');
+    const adminBtn = $('#adminBtn');
+    const adminModal = $('#adminModal');
+    const adminCodeInput = $('#adminCodeInput');
+    const adminError = $('#adminError');
+    const top10Toggle = $('#top10Toggle');
+    const lastUpdatedText = $('#lastUpdatedText');
+    const unknownAdminStat = $('#unknownAdminStat');
+    const unknownCountEl = $('#unknownCount');
+
+    function loadAdminSession() {
+      try { return sessionStorage.getItem(ADMIN_SESSION_KEY) === '1'; }
+      catch { return false; }
+    }
+
+    function saveAdminSession(enabled) {
+      try {
+        if (enabled) sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+        else sessionStorage.removeItem(ADMIN_SESSION_KEY);
+      } catch {}
+    }
+
+    function updateAdminUi() {
+      if (!adminBtn) return;
+      adminBtn.classList.toggle('active', state.isAdmin);
+      adminBtn.setAttribute('aria-pressed', String(state.isAdmin));
+      adminBtn.textContent = state.isAdmin ? '🔓 관리자 ON' : '🔒 관리자';
+    }
+
+    function setAdminMode(enabled) {
+      state.isAdmin = Boolean(enabled);
+      saveAdminSession(state.isAdmin);
+      updateAdminUi();
+      render();
+    }
+
+    function openAdminModal() {
+      adminError.textContent = '';
+      adminCodeInput.value = '';
+      adminModal.classList.add('open');
+      requestAnimationFrame(() => adminCodeInput.focus());
+    }
+
+    function closeAdminModal() {
+      adminModal.classList.remove('open');
+      adminError.textContent = '';
+      adminCodeInput.value = '';
+    }
+
+    async function sha256(text) {
+      const bytes = new TextEncoder().encode(text);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function submitAdminCode() {
+      const enteredHash = await sha256(adminCodeInput.value);
+      if (enteredHash === CONFIG.adminCodeHash) {
+        setAdminMode(true);
+        closeAdminModal();
+      } else {
+        adminError.textContent = '관리자 코드가 올바르지 않습니다.';
+        adminCodeInput.select();
+      }
+    }
+
+    function esc(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function pick(obj, keys, fallback = '') {
+      for (const key of keys) {
+        if (obj && obj[key] !== undefined && obj[key] !== null) return obj[key];
+      }
+      return fallback;
+    }
+
+    function asNumber(value) {
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+      const n = Number(String(value ?? '').replace(/[^0-9.-]/g, ''));
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function normalizeComment(raw) {
+      const id = String(pick(raw, ['p_comment_no', 'pCommentNo', 'comment_no', 'commentNo', 'id'], ''));
+      const userId = String(pick(raw, ['user_id', 'userId', 'bj_id', 'bjId', 'channel_id', 'channelId'], '')).trim();
+      const nickname = String(pick(raw, ['user_nick', 'userNick', 'nickname', 'nick_name', 'user_name', 'name'], '알 수 없음')).trim();
+      const text = String(pick(raw, ['comment', 'content', 'comment_content', 'commentContent', 'memo', 'text'], '')).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      const likes = asNumber(pick(raw, ['like_cnt', 'likeCnt', 'like_count', 'likeCount', 'up_cnt', 'upCnt', 'up_count', 'upCount', 'recommend_cnt', 'recommendCnt', 'recommend_count', 'recommendCount', 'like', 'up'], 0));
+      const date = String(pick(raw, ['reg_date', 'regDate', 'created_at', 'createdAt'], ''));
+      const replyCount = asNumber(pick(raw, [
+        'c_comment_cnt', 'cCommentCnt', 'reply_cnt', 'replyCnt', 'reply_count', 'replyCount',
+        'child_comment_cnt', 'childCommentCnt', 'sub_comment_cnt', 'subCommentCnt'
+      ], 0));
+      const profileImage = String(pick(raw, [
+        'profile_image', 'profileImage', 'profile_img', 'profileImg',
+        'user_profile_image', 'userProfileImage', 'user_profile_img', 'userProfileImg',
+        'user_image', 'userImage', 'profile_url', 'profileUrl',
+        'thumbnail', 'user_thumbnail', 'userThumbnail', 'bj_thumbnail', 'bjThumbnail'
+      ], '')).trim();
+      return { id, userId, nickname, text, likes, date, replyCount, profileImage, raw };
+    }
+
+    function applicantIdentity(item) {
+      if (item.userId) return `uid:${item.userId.toLocaleLowerCase('en')}`;
+      return `nick:${item.nickname.normalize('NFKC').toLocaleLowerCase('ko')}`;
+    }
+
+    function itemKey(item) {
+      return applicantIdentity(item);
+    }
+
+    function aggregateApplicants(items) {
+      const groups = new Map();
+      for (const item of items) {
+        const key = applicantIdentity(item);
+        const prev = groups.get(key);
+        if (!prev) {
+          groups.set(key, {
+            ...item,
+            texts: item.text ? [item.text] : [],
+            commentIds: item.id ? [item.id] : [],
+            commentCount: 1,
+            firstDate: item.date || ''
+          });
+          continue;
+        }
+
+        prev.commentCount += 1;
+        if (item.date && (!prev.firstDate || item.date < prev.firstDate)) prev.firstDate = item.date;
+        if (item.text && !prev.texts.includes(item.text)) prev.texts.push(item.text);
+        if (item.id && !prev.commentIds.includes(item.id)) prev.commentIds.push(item.id);
+        if (item.likes > prev.likes || (item.likes === prev.likes && item.date > prev.date)) {
+          prev.id = item.id;
+          prev.likes = item.likes;
+          prev.date = item.date;
+          prev.raw = item.raw;
+          if (item.nickname) prev.nickname = item.nickname;
+          if (item.userId) prev.userId = item.userId;
+          if (item.profileImage) prev.profileImage = item.profileImage;
+        } else if (!prev.profileImage && item.profileImage) {
+          prev.profileImage = item.profileImage;
+        }
+      }
+      return [...groups.values()].map(item => ({ ...item, text: item.texts.join(' | ') }));
+    }
+
+    function commentUrl(item) {
+      const base = `https://www.sooplive.com/station/${CONFIG.channelId}/post/${CONFIG.postId}`;
+      return item?.id ? `${base}#comment_noti${encodeURIComponent(item.id)}` : base;
+    }
+
+    function loadManualGenderOverrides() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        return saved && typeof saved === 'object' ? saved : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveManualGenderOverrides() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.manualGenderOverrides));
+      } catch (err) {
+        console.warn('수동 성별 분류 저장 실패', err);
+      }
+    }
+
+    function manualGenderKeys(item) {
+      const keys = [];
+      if (item?.userId) keys.push(`uid:${String(item.userId).toLocaleLowerCase('en')}`);
+      if (item?.nickname) keys.push(`nick:${String(item.nickname).normalize('NFKC').toLocaleLowerCase('ko')}`);
+      return [...new Set(keys)];
+    }
+
+    function getManualGender(item) {
+      for (const key of manualGenderKeys(item)) {
+        const value = state.manualGenderOverrides[key];
+        if (value === 'female' || value === 'male' || value === 'unknown') return value;
+      }
+      return '';
+    }
+
+    function setManualGenderForItem(item, gender) {
+      if (!item) return;
+      for (const key of manualGenderKeys(item)) state.manualGenderOverrides[key] = gender;
+    }
+
+    function reconcileManualGenderOverrides(items) {
+      let changed = false;
+      for (const item of items) {
+        const value = getManualGender(item);
+        if (!value) continue;
+        for (const key of manualGenderKeys(item)) {
+          if (state.manualGenderOverrides[key] !== value) {
+            state.manualGenderOverrides[key] = value;
+            changed = true;
+          }
+        }
+      }
+      if (changed) saveManualGenderOverrides();
+    }
+
+    function classifyGender(item) {
+      const manual = getManualGender(item);
+      if (manual) return manual;
+      if (CONFIG.genderOverrides[item.id]) return CONFIG.genderOverrides[item.id];
+
+      const t = item.text.normalize('NFKC').toLowerCase();
+      const female = /(공주|여자|여성|여캠|female|woman)/i.test(t);
+      const male = /(하인|노예|머슴|남자|남성|male|man)/i.test(t);
+
+      if (female && !male) return 'female';
+      if (male && !female) return 'male';
+      return 'unknown';
+    }
+
+    function isManualGender(item) {
+      return Boolean(getManualGender(item));
+    }
+
+    function compareRankItems(a, b) {
+      if (b.likes !== a.likes) return b.likes - a.likes;
+      const ad = String(a.firstDate || a.date || '');
+      const bd = String(b.firstDate || b.date || '');
+      if (ad && bd && ad !== bd) return ad.localeCompare(bd);
+      if (ad && !bd) return -1;
+      if (!ad && bd) return 1;
+      return a.nickname.localeCompare(b.nickname, 'ko');
+    }
+
+    function rankedItems(items) {
+      const sorted = [...items].sort(compareRankItems);
+      let lastLikes = null;
+      let lastRank = 0;
+      return sorted.map((item, index) => {
+        const rank = index === 0 || item.likes !== lastLikes ? index + 1 : lastRank;
+        lastLikes = item.likes;
+        lastRank = rank;
+        return { item, rank };
+      });
+    }
+
+    function takeTopRanks(items, limit = 100) {
+      if (!state.top10) return [...items].sort(compareRankItems);
+      return rankedItems(items).filter(x => x.rank <= limit).map(x => x.item);
+    }
+
+    function buildRankMaps(comments) {
+      const tagged = comments.map(x => ({ ...x, gender: classifyGender(x) }));
+      const build = list => {
+        const map = {};
+        for (const { item, rank } of rankedItems(list)) map[itemKey(item)] = rank;
+        return map;
+      };
+      return {
+        overall: build(tagged),
+        female: build(tagged.filter(x => x.gender === 'female')),
+        male: build(tagged.filter(x => x.gender === 'male'))
+      };
+    }
+
+    function calculateRankChanges(previousMaps, currentMaps) {
+      const result = { overall: {}, female: {}, male: {} };
+      if (!previousMaps) return result;
+      for (const scope of Object.keys(result)) {
+        for (const [key, currentRank] of Object.entries(currentMaps[scope] || {})) {
+          const previousRank = previousMaps[scope]?.[key];
+          if (!previousRank) continue;
+          const delta = previousRank - currentRank;
+          if (delta) result[scope][key] = delta;
+        }
+      }
+      return result;
+    }
+
+    function extractItems(payload) {
+      if (!payload) return [];
+      if (Array.isArray(payload)) return payload;
+      const candidates = [
+        payload.data,
+        payload.comments,
+        payload.comment,
+        payload.list,
+        payload.result?.data,
+        payload.result?.comments,
+        payload.result?.list,
+        payload.data?.comments,
+        payload.data?.list
+      ];
+      return candidates.find(Array.isArray) || [];
+    }
+
+    function getLastPage(payload, page, itemCount) {
+      const candidates = [
+        payload?.meta?.last_page,
+        payload?.meta?.lastPage,
+        payload?.pagination?.last_page,
+        payload?.pagination?.lastPage,
+        payload?.data?.meta?.last_page,
+        payload?.data?.meta?.lastPage,
+        payload?.last_page,
+        payload?.lastPage
+      ];
+      for (const v of candidates) {
+        const n = asNumber(v);
+        if (n > 0) return n;
+      }
+      // 페이지 정보가 없다면 빈 페이지가 나올 때까지 한 번 더 시도하도록 보수적으로 처리.
+      return itemCount === 0 ? page : page + 1;
+    }
+
+    function apiUrls(page, cacheBust = Date.now()) {
+      // 매 갱신마다 쿼리값을 바꿔 브라우저/CDN 캐시를 우회합니다.
+      const urls = [
+        `https://chapi.sooplive.co.kr/api/${CONFIG.channelId}/title/${CONFIG.postId}/comment?page=${page}&orderby=reg_date&_=${cacheBust}`,
+        `https://api-channel.sooplive.com/v1.1/channel/${CONFIG.channelId}/post/${CONFIG.postId}/comment?page=${page}&orderBy=reg_date&commentNo=0&_=${cacheBust}`
+      ];
+      if (!CONFIG.proxyBase) return urls;
+      return urls.map(target => CONFIG.proxyBase.replace(/\/$/, '') + '?url=' + encodeURIComponent(target));
+    }
+
+    async function fetchPage(page, cacheBust) {
+      let lastError = null;
+      for (const url of apiUrls(page, cacheBust)) {
+        try {
+          const res = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-store',
+            headers: { 'Accept': 'application/json, text/plain, */*' }
+          });
+          if (!res.ok) throw new Error(`SOOP API 응답 오류 (${res.status})`);
+          const json = await res.json();
+          if (extractItems(json).length || page === 1) return json;
+        } catch (err) {
+          lastError = err;
+        }
+      }
+      throw lastError || new Error('SOOP 댓글 API에 연결하지 못했습니다.');
+    }
+
+    async function loadComments(options = {}) {
+      const { silent = false } = options;
+      const seq = ++state.loadSeq;
+      const cacheBust = Date.now();
+      state.loading = true;
+      state.error = null;
+      if (!silent && state.comments.length === 0) renderLoading();
+      setStatus('loading', silent ? '최신 댓글과 좋아요 수를 다시 확인하는 중입니다.' : 'SOOP 댓글 데이터를 불러오는 중입니다.');
+
+      try {
+        const previousKeys = state.comments.length ? new Set(state.comments.map(itemKey)) : null;
+        const previousRankMaps = state.comments.length ? buildRankMaps(state.comments) : null;
+        const collected = [];
+        let lastPage = 1;
+
+        for (let page = 1; page <= Math.min(lastPage, CONFIG.maxPages); page++) {
+          const payload = await fetchPage(page, `${cacheBust}-${page}`);
+          const items = extractItems(payload);
+          collected.push(...items);
+          lastPage = Math.min(getLastPage(payload, page, items.length), CONFIG.maxPages);
+          if (items.length === 0) break;
+        }
+
+        if (seq !== state.loadSeq) return;
+
+        // 댓글 ID 중복 제거 후, SOOP user_id 기준으로 동일 신청자를 한 명으로 합칩니다.
+        const commentMap = new Map();
+        for (const raw of collected) {
+          const item = normalizeComment(raw);
+          const key = item.id || `${item.userId}|${item.nickname}|${item.date}|${item.text}`;
+          if (!commentMap.has(key)) commentMap.set(key, item);
+        }
+        const uniqueComments = [...commentMap.values()];
+        const applicants = aggregateApplicants(uniqueComments);
+
+        state.rawCommentCount = uniqueComments.length;
+        state.excludedCommentCount = uniqueComments.reduce((sum, item) => sum + Math.max(0, asNumber(item.replyCount)), 0);
+        state.postCommentCount = state.rawCommentCount + state.excludedCommentCount;
+        state.comments = applicants.sort(compareRankItems);
+        reconcileManualGenderOverrides(state.comments);
+        if (previousKeys) {
+          for (const item of state.comments) {
+            const key = itemKey(item);
+            if (!previousKeys.has(key)) state.newApplicants.add(key);
+          }
+        }
+        const currentRankMaps = buildRankMaps(state.comments);
+        state.rankChanges = calculateRankChanges(previousRankMaps, currentRankMaps);
+        state.updatedAt = new Date();
+        state.loading = false;
+        if (lastUpdatedText) lastUpdatedText.textContent = `최근 갱신 ${formatTime(state.updatedAt)}`;
+        render();
+
+        const duplicateCount = Math.max(0, state.rawCommentCount - state.comments.length);
+        const duplicateText = duplicateCount ? ` · 중복 댓글 계정 ${duplicateCount.toLocaleString()}건 통합` : '';
+        setStatus('live', `신청 댓글 ${state.rawCommentCount.toLocaleString()}개 → 고유 신청자 ${state.comments.length.toLocaleString()}명${duplicateText} · ${formatTime(state.updatedAt)} 기준`);
+      } catch (err) {
+        if (seq !== state.loadSeq) return;
+        console.error(err);
+        state.loading = false;
+        state.error = err;
+        if (state.comments.length === 0) {
+          state.comments = [];
+          render();
+        }
+        setStatus('error', 'SOOP 댓글 최신 데이터 호출에 실패했습니다. 잠시 후 자동으로 다시 시도하거나 새로고침을 눌러 주세요.');
+      }
+    }
+
+    function setStatus(type, message) {
+      statusDot.className = 'dot' + (type === 'live' ? ' live' : type === 'error' ? ' error' : '');
+      statusText.textContent = message;
+    }
+
+    function formatTime(date) {
+      return new Intl.DateTimeFormat('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(date);
+    }
+
+    function filteredBase() {
+      const q = state.query.trim().toLocaleLowerCase('ko');
+      if (!q) return state.comments;
+      return state.comments.filter(x => x.nickname.toLocaleLowerCase('ko').includes(q));
+    }
+
+    function safeImageUrl(value) {
+      const url = String(value || '').trim();
+      if (!url) return '';
+      if (/^https?:\/\//i.test(url)) return url;
+      if (url.startsWith('//')) return 'https:' + url;
+      return '';
+    }
+
+    function stationProfileUrl(item, ext = 'jpg') {
+      const id = String(item.userId || '').trim();
+      if (!id) return '';
+      const bucket = id.slice(0, 2).toLowerCase();
+      return `https://stimg.sooplive.com/LOGO/${encodeURIComponent(bucket)}/${encodeURIComponent(id)}/${encodeURIComponent(id)}.${ext}`;
+    }
+
+    function avatarHtml(item) {
+      const rawImage = safeImageUrl(item.profileImage);
+      const jpgFallback = stationProfileUrl(item, 'jpg');
+      const webpFallback = stationProfileUrl(item, 'webp');
+      const imageUrl = rawImage || jpgFallback || webpFallback;
+      const initial = esc((item.nickname || '?').trim().charAt(0) || '?');
+
+      if (!imageUrl) {
+        return `<div class="avatar-wrap" aria-hidden="true"><div class="avatar-fallback">${initial}</div></div>`;
+      }
+
+      const fallbackAttr = webpFallback && imageUrl !== webpFallback
+        ? ` data-fallback-src="${esc(webpFallback)}"`
+        : '';
+
+      return `<div class="avatar-wrap">
+        <img class="avatar" src="${esc(imageUrl)}"${fallbackAttr} alt="" loading="lazy" referrerpolicy="no-referrer"
+          onerror="if(this.dataset.fallbackSrc){const u=this.dataset.fallbackSrc;delete this.dataset.fallbackSrc;this.src=u}else{this.style.display='none';this.nextElementSibling.style.display='grid'}">
+        <div class="avatar-fallback" style="display:none">${initial}</div>
+      </div>`;
+    }
+
+    function nameHtml(item) {
+      const url = commentUrl(item);
+      const label = esc(item.nickname);
+      return `<a class="name-link" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="${label} 신청 댓글로 이동">${label}</a>`;
+    }
+
+    function badgeHtml(item) {
+      const key = itemKey(item);
+      const dragged = state.newDraggedApplicants.has(key) ? `<span class="new-badge">NEW!</span>` : '';
+      const fresh = state.newApplicants.has(key) ? `<span class="fresh-badge">신규</span>` : '';
+      return dragged + fresh;
+    }
+
+    function rankMoveHtml(item, scope) {
+      const delta = state.rankChanges?.[scope]?.[itemKey(item)] || 0;
+      if (!delta) return '';
+      const cls = delta > 0 ? 'up' : 'down';
+      const arrow = delta > 0 ? '▲' : '▼';
+      return `<span class="rank-move ${cls}" title="직전 갱신 대비 순위 변동">${arrow}${Math.abs(delta)}</span>`;
+    }
+
+    function rowHtml(item, rank, draggable = false, scope = 'overall') {
+      const topClass = rank <= 3 ? ` top${rank}` : '';
+      const dragAttrs = draggable ? ` draggable="true" data-drag-key="${esc(itemKey(item))}"` : '';
+      const undo = state.isAdmin && isManualGender(item)
+        ? `<button class="undo-gender-btn" type="button" draggable="false" data-unclassify="${esc(itemKey(item))}" title="미확인으로 되돌리기" aria-label="${esc(item.nickname)} 미확인으로 되돌리기">↩</button>`
+        : '';
+      const actionClass = undo ? ' has-admin-action' : '';
+      return `<div class="rank-row${topClass}${actionClass}"${dragAttrs}>
+        <div class="rank-num">${rank}</div>
+        ${avatarHtml(item)}
+        <div class="name" title="${esc(item.nickname)}">${nameHtml(item)}${badgeHtml(item)}${rankMoveHtml(item, scope)}</div>
+        <div class="likes"><span class="heart">♥</span>${item.likes.toLocaleString()}</div>
+        ${undo}
+      </div>`;
+    }
+
+    function unknownRowHtml(item, rank) {
+      const key = esc(itemKey(item));
+      const actions = state.isAdmin ? `<div class="gender-actions" aria-label="${esc(item.nickname)} 성별 지정">
+          <button class="gender-btn" type="button" data-manual-gender="female" data-item-key="${key}">여자</button>
+          <button class="gender-btn" type="button" data-manual-gender="male" data-item-key="${key}">남자</button>
+        </div>` : '';
+      return `<div class="unknown-row">
+        <div class="rank-num">${rank}</div>
+        ${avatarHtml(item)}
+        <div class="name" title="${esc(item.nickname)}">${nameHtml(item)}${badgeHtml(item)}</div>
+        <div class="likes"><span class="heart">♥</span>${item.likes.toLocaleString()}</div>
+        ${actions}
+      </div>`;
+    }
+
+    function unknownBoardHtml(items, emptyMessage) {
+      const totalCount = items.length;
+      const visible = takeTopRanks(items);
+      const rows = visible.length ? rankedItems(visible).map(({ item, rank }) => unknownRowHtml(item, rank)).join('') : `<div class="empty">${esc(emptyMessage)}</div>`;
+      const manualCount = state.comments.filter(isManualGender).length;
+      return `<section class="board">
+        <div class="board-head">
+          <div class="board-title"><strong>신규 신청자</strong><span>${totalCount.toLocaleString()}명</span></div>
+          <div class="board-title"><span>${state.top10 ? 'TOP 100 · ' : ''}좋아요순</span></div>
+        </div>
+        ${state.isAdmin ? `<p class="unknown-note">신규 신청자를 여자 또는 남자로 분류하면 즉시 해당 랭킹으로 이동합니다.</p>` : ''}
+        <div class="rows">${rows}</div>
+        ${state.isAdmin && manualCount ? `<div class="manual-tools"><button id="resetManualGender" class="reset-btn" type="button">수동 분류 초기화 (${manualCount})</button></div>` : ''}
+      </section>`;
+    }
+
+    function boardHtml(title, items, emptyMessage, genderDrop = '', scope = 'overall') {
+      const totalCount = items.length;
+      const visible = takeTopRanks(items);
+      const displayCount = state.top10 ? Math.min(totalCount, 100) : totalCount;
+      const genderClass = genderDrop === 'female' ? ' female-board' : genderDrop === 'male' ? ' male-board' : '';
+      const dropAttrs = genderDrop ? ` data-gender-drop="${genderDrop}" class="board drop-zone${genderClass}"` : ' class="board"';
+      const draggable = Boolean(genderDrop) && state.isAdmin;
+      const rows = visible.length ? rankedItems(visible).map(({ item, rank }) => rowHtml(item, rank, draggable, scope)).join('') : `<div class="empty">${esc(emptyMessage)}</div>`;
+      return `<section${dropAttrs}>
+        <div class="board-head">
+          <div class="board-title"><strong>${esc(title)}</strong><span>${displayCount.toLocaleString()}명</span></div>
+          <div class="board-title"><span>${state.top10 ? 'TOP 100 · ' : ''}좋아요순</span></div>
+        </div>
+        <div class="rows">${rows}</div>
+      </section>`;
+    }
+
+    function renderLoading() {
+      const skeleton = Array.from({length:7}, () => `<div class="skeleton-row"><div class="sk circle"></div><div class="sk circle" style="border-radius:50%"></div><div class="sk"></div><div class="sk"></div></div>`).join('');
+      contentEl.innerHTML = `<div class="split"><section class="board female-board"><div class="board-head"><div class="board-title"><strong>여자 신청자</strong></div></div>${skeleton}</section><section class="board male-board"><div class="board-head"><div class="board-title"><strong>남자 신청자</strong></div></div>${skeleton}</section></div>`;
+    }
+
+    function render() {
+      if (postCommentCountEl) postCommentCountEl.textContent = state.postCommentCount.toLocaleString();
+      if (applicationCommentCountEl) applicationCommentCountEl.textContent = state.rawCommentCount.toLocaleString();
+      if (excludedCommentCountEl) excludedCommentCountEl.textContent = state.excludedCommentCount.toLocaleString();
+
+      const all = filteredBase();
+      const tagged = all.map(x => ({...x, gender: classifyGender(x)}));
+      const female = tagged.filter(x => x.gender === 'female').sort(compareRankItems);
+      const male = tagged.filter(x => x.gender === 'male').sort(compareRankItems);
+      const unknown = tagged.filter(x => x.gender === 'unknown').sort(compareRankItems);
+
+      const fullTagged = state.comments.map(x => ({...x, gender: classifyGender(x)}));
+      const fullUnknownCount = fullTagged.filter(x=>x.gender==='unknown').length;
+      $('#totalCount').textContent = state.comments.length.toLocaleString();
+      $('#femaleCount').textContent = fullTagged.filter(x=>x.gender==='female').length.toLocaleString();
+      $('#maleCount').textContent = fullTagged.filter(x=>x.gender==='male').length.toLocaleString();
+      if (unknownCountEl) unknownCountEl.textContent = fullUnknownCount.toLocaleString();
+      if (unknownAdminStat) {
+        unknownAdminStat.classList.toggle('is-hidden', !state.isAdmin);
+        unknownAdminStat.classList.toggle('alerting', state.isAdmin && fullUnknownCount > 0);
+      }
+
+      if (state.error) {
+        contentEl.innerHTML = `<section class="board"><div class="empty"><strong>댓글 데이터를 표시할 수 없습니다.</strong><br>브라우저에서 SOOP 공개 댓글 API 호출이 차단됐거나 일시적인 오류가 발생했습니다.<br>상단의 <b>새로고침</b> 버튼으로 다시 시도할 수 있습니다.</div></section>`;
+        return;
+      }
+
+      const unknownBoard = `<div class="unknown-section">
+        ${unknownBoardHtml(unknown, state.query ? '검색 결과가 없습니다.' : '신규 신청자가 없습니다.')}
+      </div>`;
+
+      if (state.splitGender) {
+        const dragHint = state.isAdmin ? `<p class="drag-hint">신청자를 드래그해서 반대쪽 성별 칸에 놓으면 수동 분류로 저장됩니다.</p>` : '';
+        contentEl.innerHTML = `${dragHint}<div class="split">
+          ${boardHtml('여자 신청자', female, state.query ? '검색 결과가 없습니다.' : '여자로 분류된 신청자가 없습니다.', 'female', 'female')}
+          ${boardHtml('남자 신청자', male, state.query ? '검색 결과가 없습니다.' : '남자로 분류된 신청자가 없습니다.', 'male', 'male')}
+        </div>${unknownBoard}`;
+      } else {
+        contentEl.innerHTML = `<div class="single">${boardHtml('전체 신청자', tagged.sort(compareRankItems), state.query ? '검색 결과가 없습니다.' : '신청 댓글이 없습니다.', '', 'overall')}</div>${unknownBoard}`;
+      }
+    }
+
+    toggleEl.addEventListener('click', () => {
+      state.splitGender = !state.splitGender;
+      toggleEl.setAttribute('aria-pressed', String(state.splitGender));
+      toggleText.textContent = state.splitGender ? 'ON' : 'OFF';
+      render();
+    });
+
+    top10Toggle.addEventListener('click', () => {
+      state.top10 = !state.top10;
+      top10Toggle.setAttribute('aria-pressed', String(state.top10));
+      top10Toggle.textContent = state.top10 ? 'TOP 100 ON' : 'TOP 100';
+      document.body.classList.toggle('top100-mode', state.top10);
+      render();
+    });
+
+    searchInput.addEventListener('input', (e) => {
+      state.query = e.target.value;
+      render();
+    });
+
+    $('#refreshBtn').addEventListener('click', () => loadComments({ silent: state.comments.length > 0 }));
+
+    contentEl.addEventListener('click', (e) => {
+      const unclassifyBtn = e.target.closest('[data-unclassify]');
+      if (unclassifyBtn) {
+        if (!state.isAdmin) return;
+        const key = unclassifyBtn.dataset.unclassify;
+        if (key) {
+          const item = state.comments.find(x => itemKey(x) === key || manualGenderKeys(x).includes(key));
+          if (item) setManualGenderForItem(item, 'unknown');
+          else state.manualGenderOverrides[key] = 'unknown';
+          saveManualGenderOverrides();
+          render();
+        }
+        return;
+      }
+
+      const genderBtn = e.target.closest('[data-manual-gender]');
+      if (genderBtn) {
+        if (!state.isAdmin) return;
+        const key = genderBtn.dataset.itemKey;
+        const gender = genderBtn.dataset.manualGender;
+        if (key && (gender === 'female' || gender === 'male')) {
+          const item = state.comments.find(x => itemKey(x) === key || manualGenderKeys(x).includes(key));
+          if (item) setManualGenderForItem(item, gender);
+          else state.manualGenderOverrides[key] = gender;
+          saveManualGenderOverrides();
+          render();
+        }
+        return;
+      }
+
+      if (e.target.closest('#resetManualGender')) {
+        if (!state.isAdmin) return;
+        state.manualGenderOverrides = {};
+        saveManualGenderOverrides();
+        render();
+      }
+    });
+
+    let draggedKey = '';
+
+    contentEl.addEventListener('dragstart', (e) => {
+      if (!state.isAdmin) { e.preventDefault(); return; }
+      if (e.target.closest('button, a')) { e.preventDefault(); return; }
+      const row = e.target.closest('[data-drag-key]');
+      if (!row) return;
+      draggedKey = row.dataset.dragKey || '';
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', draggedKey);
+      }
+    });
+
+    contentEl.addEventListener('dragend', () => {
+      draggedKey = '';
+    });
+
+    contentEl.addEventListener('dragover', (e) => {
+      if (!state.isAdmin) return;
+      const zone = e.target.closest('[data-gender-drop]');
+      if (!draggedKey || !zone) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    });
+
+    contentEl.addEventListener('drop', (e) => {
+      if (!state.isAdmin) return;
+      const zone = e.target.closest('[data-gender-drop]');
+      if (!zone) return;
+      e.preventDefault();
+      const key = (e.dataTransfer?.getData('text/plain') || draggedKey || '').trim();
+      const gender = zone.dataset.genderDrop;
+      if (key && (gender === 'female' || gender === 'male')) {
+        const item = state.comments.find(x => itemKey(x) === key);
+        const beforeGender = item ? classifyGender(item) : '';
+        if (item) setManualGenderForItem(item, gender);
+        else state.manualGenderOverrides[key] = gender;
+        if (beforeGender && beforeGender !== gender) state.newDraggedApplicants.add(key);
+        saveManualGenderOverrides();
+        render();
+      }
+      draggedKey = '';
+    });
+
+    adminBtn.addEventListener('click', () => {
+      if (state.isAdmin) setAdminMode(false);
+      else openAdminModal();
+    });
+    $('#adminCancelBtn').addEventListener('click', closeAdminModal);
+    $('#adminSubmitBtn').addEventListener('click', submitAdminCode);
+    adminCodeInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitAdminCode();
+      if (e.key === 'Escape') closeAdminModal();
+    });
+    adminModal.addEventListener('click', (e) => {
+      if (e.target === adminModal) closeAdminModal();
+    });
+
+    state.isAdmin = loadAdminSession();
+    updateAdminUi();
+    state.manualGenderOverrides = loadManualGenderOverrides();
+    loadComments();
+
+    // 페이지가 열려 있는 동안에도 좋아요/신규 댓글을 주기적으로 다시 확인합니다.
+    setInterval(() => {
+      if (!document.hidden && !state.loading) loadComments({ silent: true });
+    }, 60_000);
+  </script>
+</body>
+</html>
