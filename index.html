@@ -3400,7 +3400,7 @@
       const maleTop100Cutoff = Math.min(50, fullMaleCount);
       const femaleTop100Cutoff = Math.min(100, 100 - maleTop100Cutoff);
       const showGenderCutoff = state.top10 && state.splitGender && !state.query.trim();
-      $('#totalCount').textContent = state.comments.length.toLocaleString();
+      $('#totalCount').textContent = (state.top10 ? Math.min(100, state.comments.length) : state.comments.length).toLocaleString();
       $('#femaleCount').textContent = fullFemaleCount.toLocaleString();
       $('#maleCount').textContent = fullMaleCount.toLocaleString();
       if (unknownCountEl) unknownCountEl.textContent = fullUnknownCount.toLocaleString();
