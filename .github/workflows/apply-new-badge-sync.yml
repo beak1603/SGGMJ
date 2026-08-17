@@ -1,0 +1,30 @@
+name: Apply NEW badge sync
+
+on:
+  push:
+    paths:
+      - 'patch_new_badge_sync.py'
+      - '.github/workflows/apply-new-badge-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python patch_new_badge_sync.py
+      - name: Commit site update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Sync NEW badge across devices"
+            git push
+          fi
