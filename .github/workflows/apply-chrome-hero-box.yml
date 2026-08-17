@@ -1,0 +1,28 @@
+name: Apply Chrome hero box fix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-chrome-hero-box.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python patch_chrome_hero_box.py
+      - name: Commit site update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Normalize hero background across Chrome and Edge"
+            git push
+          fi
