@@ -2469,7 +2469,7 @@
       newDraggedApplicants: new Set(),
       // 페이지가 열린 뒤 새로 추가된 신청자. 새로고침하면 초기화됩니다.
       newApplicants: new Set(),
-      // 직전 데이터 갱신 대비 순위 변동. API 갱신 때만 새로 계산합니다.
+      // 가장 최근에 확인된 순위 변동. 새로고침하거나 다시 접속해도 유지합니다.
       rankChanges: { overall: {}, female: {}, male: {} },
       top10: false,
       loadSeq: 0,
@@ -2483,6 +2483,7 @@
     const ADMIN_SESSION_KEY = 'soop-rank-admin-session-v1';
     const ADMIN_CODE_SESSION_KEY = 'soop-rank-admin-code-session-v1';
     const NEW_SEEN_SESSION_KEY = 'soop-rank-seen-new-v1';
+    const RANK_HISTORY_KEY = 'soop-rank-history-v1';
 
     const $ = (sel) => document.querySelector(sel);
     const contentEl = $('#content');
@@ -3084,6 +3085,61 @@
       return result;
     }
 
+    function emptyRankGroups() {
+      return { overall: {}, female: {}, male: {} };
+    }
+
+    function sanitizeRankGroups(value) {
+      const result = emptyRankGroups();
+      if (!value || typeof value !== 'object') return result;
+      for (const scope of Object.keys(result)) {
+        const source = value[scope];
+        if (!source || typeof source !== 'object') continue;
+        for (const [key, rawValue] of Object.entries(source)) {
+          const number = Number(rawValue);
+          if (key && Number.isFinite(number) && number !== 0) result[scope][key] = number;
+        }
+      }
+      return result;
+    }
+
+    function loadRankHistory() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(RANK_HISTORY_KEY) || 'null');
+        if (!saved || typeof saved !== 'object') return null;
+        return {
+          snapshot: sanitizeRankGroups(saved.snapshot),
+          changes: sanitizeRankGroups(saved.changes)
+        };
+      } catch {
+        return null;
+      }
+    }
+
+    function mergeRankChanges(retainedChanges, detectedChanges, currentMaps) {
+      const retained = sanitizeRankGroups(retainedChanges);
+      const detected = sanitizeRankGroups(detectedChanges);
+      const result = emptyRankGroups();
+      for (const scope of Object.keys(result)) {
+        for (const key of Object.keys(currentMaps[scope] || {})) {
+          const delta = detected[scope]?.[key] || retained[scope]?.[key] || 0;
+          if (delta) result[scope][key] = delta;
+        }
+      }
+      return result;
+    }
+
+    function saveRankHistory(snapshot, changes) {
+      try {
+        localStorage.setItem(RANK_HISTORY_KEY, JSON.stringify({
+          snapshot: sanitizeRankGroups(snapshot),
+          changes: sanitizeRankGroups(changes)
+        }));
+      } catch (err) {
+        console.warn('순위 변동 저장 실패', err);
+      }
+    }
+
     function extractItems(payload) {
       if (!payload) return [];
       if (Array.isArray(payload)) return payload;
@@ -3161,7 +3217,12 @@
 
       try {
         const previousKeys = state.comments.length ? new Set(state.comments.map(itemKey)) : null;
-        const previousRankMaps = state.comments.length ? buildRankMaps(state.comments) : null;
+        const memoryPreviousRankMaps = state.comments.length ? buildRankMaps(state.comments) : null;
+        const savedRankHistory = memoryPreviousRankMaps ? null : loadRankHistory();
+        const previousRankMaps = memoryPreviousRankMaps || savedRankHistory?.snapshot || null;
+        const retainedRankChanges = memoryPreviousRankMaps
+          ? state.rankChanges
+          : (savedRankHistory?.changes || state.rankChanges);
         const collected = [];
         let lastPage = 1;
 
@@ -3198,7 +3259,9 @@
           }
         }
         const currentRankMaps = buildRankMaps(state.comments);
-        state.rankChanges = calculateRankChanges(previousRankMaps, currentRankMaps);
+        const detectedRankChanges = calculateRankChanges(previousRankMaps, currentRankMaps);
+        state.rankChanges = mergeRankChanges(retainedRankChanges, detectedRankChanges, currentRankMaps);
+        saveRankHistory(currentRankMaps, state.rankChanges);
         state.updatedAt = new Date();
         state.loading = false;
         if (lastUpdatedText) lastUpdatedText.textContent = `최근 갱신 ${formatTime(state.updatedAt)}`;
@@ -3290,7 +3353,7 @@
       if (!delta) return '';
       const cls = delta > 0 ? 'up' : 'down';
       const arrow = delta > 0 ? '▲' : '▼';
-      return `<span class="rank-move ${cls}" title="직전 갱신 대비 순위 변동">${arrow}${Math.abs(delta)}</span>`;
+      return `<span class="rank-move ${cls}" title="최근 확인된 순위 변동">${arrow}${Math.abs(delta)}</span>`;
     }
 
     function rowHtml(item, rank, draggable = false, scope = 'overall', cutoffAfter = false) {
