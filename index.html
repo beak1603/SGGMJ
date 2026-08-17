@@ -1714,7 +1714,44 @@
       }
     }
 
-  </style>
+  
+    /* ===== Mobile readability fix ===== */
+    @media (max-width: 640px) {
+      .wrap { width: calc(100% - 14px) !important; }
+      .split { grid-template-columns: minmax(0, 1fr) !important; gap: 12px !important; }
+      .board, .female-board, .male-board, .single {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+      }
+      .board-head { padding-left: 14px !important; padding-right: 14px !important; }
+      .rank-row {
+        width: 100%; min-width: 0;
+        grid-template-columns: 34px 40px minmax(0, 1fr) auto !important;
+        gap: 8px !important; padding: 0 12px !important;
+      }
+      .rank-row.has-admin-action, .single .rank-row.has-admin-action {
+        grid-template-columns: 34px 40px minmax(0, 1fr) auto 28px !important;
+      }
+      .rank-num { width: 30px !important; height: 30px !important; font-size: 12px !important; }
+      .avatar-wrap { width: 36px !important; height: 36px !important; }
+      .name, .name-wrap, .applicant-info { min-width: 0 !important; max-width: 100% !important; }
+      .name {
+        display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        font-size: 13px !important;
+      }
+      .likes { min-width: 50px !important; white-space: nowrap; }
+      .unknown-row {
+        width: 100%; min-width: 0;
+        grid-template-columns: 34px 40px minmax(0, 1fr) auto !important;
+        padding-left: 12px !important; padding-right: 12px !important;
+      }
+      .unknown-row .gender-actions { min-width: 0; flex-wrap: wrap; }
+      .toolbar { grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; }
+      .toolbar > * { min-width: 0; }
+    }
+
+</style>
 </head>
 <body>
   <main class="wrap">
@@ -1785,6 +1822,8 @@
       genderOverrides: {},
       // 직접 API 호출이 브라우저 정책으로 막힐 때 사용할 프록시 주소. 기본값은 비워둡니다.
       proxyBase: '',
+      supabaseUrl: 'https://ezpfongqfmaczftwleog.supabase.co',
+      supabasePublishableKey: 'sb_publishable_t25xim64x_XQJxwleaA57w_WGINOMrW',
       adminCodeHash: '0f65f55c87c47704194741c1dd4aa83401188ffea90cd881e0733059481dcdba'
     };
 
@@ -1808,11 +1847,13 @@
       rankChanges: { overall: {}, female: {}, male: {} },
       top10: false,
       loadSeq: 0,
-      isAdmin: false
+      isAdmin: false,
+      adminCode: ''
     };
 
     const STORAGE_KEY = 'soop-rank-manual-gender-v1';
     const ADMIN_SESSION_KEY = 'soop-rank-admin-session-v1';
+    const ADMIN_CODE_SESSION_KEY = 'soop-rank-admin-code-session-v1';
 
     const $ = (sel) => document.querySelector(sel);
     const contentEl = $('#content');
@@ -1845,6 +1886,18 @@
       } catch {}
     }
 
+    function loadAdminCodeSession() {
+      try { return sessionStorage.getItem(ADMIN_CODE_SESSION_KEY) || ''; }
+      catch { return ''; }
+    }
+
+    function saveAdminCodeSession(code) {
+      try {
+        if (code) sessionStorage.setItem(ADMIN_CODE_SESSION_KEY, code);
+        else sessionStorage.removeItem(ADMIN_CODE_SESSION_KEY);
+      } catch {}
+    }
+
     function updateAdminUi() {
       if (!adminBtn) return;
       adminBtn.classList.toggle('active', state.isAdmin);
@@ -1855,6 +1908,10 @@
     function setAdminMode(enabled) {
       state.isAdmin = Boolean(enabled);
       saveAdminSession(state.isAdmin);
+      if (!state.isAdmin) {
+        state.adminCode = '';
+        saveAdminCodeSession('');
+      }
       updateAdminUi();
       render();
     }
@@ -1881,8 +1938,11 @@
     async function submitAdminCode() {
       const enteredHash = await sha256(adminCodeInput.value);
       if (enteredHash === CONFIG.adminCodeHash) {
+        state.adminCode = adminCodeInput.value;
+        saveAdminCodeSession(state.adminCode);
         setAdminMode(true);
         closeAdminModal();
+        syncAllLocalOverridesToCloud();
       } else {
         adminError.textContent = '관리자 코드가 올바르지 않습니다.';
         adminCodeInput.select();
@@ -1994,6 +2054,85 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state.manualGenderOverrides));
       } catch (err) {
         console.warn('수동 성별 분류 저장 실패', err);
+      }
+    }
+
+    async function fetchCloudGenderMap() {
+      const response = await fetch(
+        `${CONFIG.supabaseUrl}/rest/v1/gender_overrides?select=applicant_key,gender,nickname`,
+        {
+          headers: { apikey: CONFIG.supabasePublishableKey },
+          cache: 'no-store'
+        }
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const rows = await response.json();
+      const cloud = {};
+      for (const row of Array.isArray(rows) ? rows : []) {
+        const key = String(row?.applicant_key || '').trim();
+        const gender = String(row?.gender || '').trim();
+        if (key && (gender === 'female' || gender === 'male' || gender === 'unknown')) cloud[key] = gender;
+      }
+      return cloud;
+    }
+
+    async function loadCloudGenderOverrides() {
+      try {
+        const cloud = await fetchCloudGenderMap();
+        // 서버 값을 우선해서 PC/모바일/다른 브라우저가 같은 분류를 표시합니다.
+        state.manualGenderOverrides = { ...state.manualGenderOverrides, ...cloud };
+        saveManualGenderOverrides();
+        if (!state.loading) render();
+        return cloud;
+      } catch (err) {
+        console.warn('공용 성별 분류 불러오기 실패', err);
+        return null;
+      }
+    }
+
+    async function syncGenderOperation(payload) {
+      if (!state.isAdmin || !state.adminCode) return false;
+      try {
+        const response = await fetch(`${CONFIG.supabaseUrl}/functions/v1/gender-sync`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: CONFIG.supabasePublishableKey
+          },
+          body: JSON.stringify({ adminCode: state.adminCode, ...payload })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return true;
+      } catch (err) {
+        console.warn('성별 분류 동기화 실패', err);
+        return false;
+      }
+    }
+
+    async function syncGenderForItem(item, gender) {
+      const keys = manualGenderKeys(item);
+      if (!keys.length) return false;
+      return syncGenderOperation({ operation: 'set', keys, gender, nickname: item?.nickname || '' });
+    }
+
+    async function syncStandaloneGenderKey(key, gender, nickname = '') {
+      if (!key) return false;
+      return syncGenderOperation({ operation: 'set', keys: [key], gender, nickname });
+    }
+
+    async function syncAllLocalOverridesToCloud() {
+      if (!state.isAdmin || !state.adminCode) return;
+      try {
+        const cloud = await fetchCloudGenderMap();
+        // 기존 PC의 분류는 최초 1회 클라우드로 옮기되, 이미 서버에 있는 값은 덮어쓰지 않습니다.
+        for (const [key, gender] of Object.entries(state.manualGenderOverrides)) {
+          if (key in cloud) continue;
+          if (gender !== 'female' && gender !== 'male' && gender !== 'unknown') continue;
+          await syncStandaloneGenderKey(key, gender);
+        }
+        await loadCloudGenderOverrides();
+      } catch (err) {
+        console.warn('기존 수동 분류 이전 실패', err);
       }
     }
 
@@ -2456,6 +2595,8 @@
           if (item) setManualGenderForItem(item, 'unknown');
           else state.manualGenderOverrides[key] = 'unknown';
           saveManualGenderOverrides();
+          if (item) syncGenderForItem(item, 'unknown');
+          else syncStandaloneGenderKey(key, 'unknown');
           render();
         }
         return;
@@ -2471,6 +2612,8 @@
           if (item) setManualGenderForItem(item, gender);
           else state.manualGenderOverrides[key] = gender;
           saveManualGenderOverrides();
+          if (item) syncGenderForItem(item, gender);
+          else syncStandaloneGenderKey(key, gender);
           render();
         }
         return;
@@ -2480,6 +2623,7 @@
         if (!state.isAdmin) return;
         state.manualGenderOverrides = {};
         saveManualGenderOverrides();
+        syncGenderOperation({ operation: 'reset' });
         render();
       }
     });
@@ -2524,6 +2668,8 @@
         else state.manualGenderOverrides[key] = gender;
         if (beforeGender && beforeGender !== gender) state.newDraggedApplicants.add(key);
         saveManualGenderOverrides();
+        if (item) syncGenderForItem(item, gender);
+        else syncStandaloneGenderKey(key, gender);
         render();
       }
       draggedKey = '';
@@ -2544,13 +2690,20 @@
     });
 
     state.isAdmin = loadAdminSession();
+    state.adminCode = loadAdminCodeSession();
+    if (state.isAdmin && !state.adminCode) state.isAdmin = false;
     updateAdminUi();
     state.manualGenderOverrides = loadManualGenderOverrides();
+    loadCloudGenderOverrides();
+    if (state.isAdmin) syncAllLocalOverridesToCloud();
     loadComments();
 
     // 페이지가 열려 있는 동안에도 좋아요/신규 댓글을 주기적으로 다시 확인합니다.
     setInterval(() => {
-      if (!document.hidden && !state.loading) loadComments({ silent: true });
+      if (!document.hidden && !state.loading) {
+        loadComments({ silent: true });
+        loadCloudGenderOverrides();
+      }
     }, 60_000);
   </script>
 </body>
