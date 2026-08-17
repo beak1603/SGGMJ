@@ -2769,6 +2769,18 @@
       });
     }
 
+    function fullRankMap(scope = 'overall') {
+      const tagged = state.comments.map(x => ({ ...x, gender: classifyGender(x) }));
+      let source = tagged;
+      if (scope === 'female') source = tagged.filter(x => x.gender === 'female');
+      else if (scope === 'male') source = tagged.filter(x => x.gender === 'male');
+      else if (scope === 'unknown') source = tagged.filter(x => x.gender === 'unknown');
+
+      const map = new Map();
+      for (const { item, rank } of rankedItems(source)) map.set(itemKey(item), rank);
+      return map;
+    }
+
     function takeTopRanks(items, limit = 100) {
       if (!state.top10) return [...items].sort(compareRankItems);
       return rankedItems(items).filter(x => x.rank <= limit).map(x => x.item);
@@ -3045,8 +3057,15 @@
 
     function unknownBoardHtml(items, emptyMessage) {
       const totalCount = items.length;
-      const visible = takeTopRanks(items);
-      const rows = visible.length ? rankedItems(visible).map(({ item, rank }) => unknownRowHtml(item, rank)).join('') : `<div class="empty">${esc(emptyMessage)}</div>`;
+      const isSearch = Boolean(state.query.trim());
+      const rankMap = isSearch ? fullRankMap('unknown') : null;
+      const visible = isSearch && state.top10
+        ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 100).sort(compareRankItems)
+        : takeTopRanks(items);
+      const rankedVisible = isSearch
+        ? [...visible].sort(compareRankItems).map(item => ({ item, rank: rankMap.get(itemKey(item)) || 0 }))
+        : rankedItems(visible);
+      const rows = rankedVisible.length ? rankedVisible.map(({ item, rank }) => unknownRowHtml(item, rank)).join('') : `<div class="empty">${esc(emptyMessage)}</div>`;
       const manualCount = state.comments.filter(isManualGender).length;
       return `<section class="board">
         <div class="board-head">
@@ -3061,12 +3080,18 @@
 
     function boardHtml(title, items, emptyMessage, genderDrop = '', scope = 'overall', cutoffRank = 0) {
       const totalCount = items.length;
-      const visible = takeTopRanks(items);
-      const displayCount = state.top10 ? Math.min(totalCount, 100) : totalCount;
+      const isSearch = Boolean(state.query.trim());
+      const rankMap = isSearch ? fullRankMap(scope) : null;
+      const visible = isSearch && state.top10
+        ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 100).sort(compareRankItems)
+        : takeTopRanks(items);
+      const displayCount = state.top10 ? visible.length : totalCount;
       const genderClass = genderDrop === 'female' ? ' female-board' : genderDrop === 'male' ? ' male-board' : '';
       const dropAttrs = genderDrop ? ` data-gender-drop="${genderDrop}" class="board drop-zone${genderClass}"` : ' class="board"';
       const draggable = Boolean(genderDrop) && state.isAdmin;
-      const rankedVisible = rankedItems(visible);
+      const rankedVisible = isSearch
+        ? [...visible].sort(compareRankItems).map(item => ({ item, rank: rankMap.get(itemKey(item)) || 0 }))
+        : rankedItems(visible);
       const lastCutoffIndex = cutoffRank > 0 ? rankedVisible.reduce((last, entry, index) => entry.rank <= cutoffRank ? index : last, -1) : -1;
       const rows = rankedVisible.length ? rankedVisible.map(({ item, rank }, index) => {
         const row = rowHtml(item, rank, draggable, scope, index === lastCutoffIndex);
