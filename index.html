@@ -3041,15 +3041,9 @@
     }
 
     function rankedItems(items) {
-      const sorted = [...items].sort(compareRankItems);
-      let lastLikes = null;
-      let lastRank = 0;
-      return sorted.map((item, index) => {
-        const rank = index === 0 || item.likes !== lastLikes ? index + 1 : lastRank;
-        lastLikes = item.likes;
-        lastRank = rank;
-        return { item, rank };
-      });
+      return [...items]
+        .sort(compareRankItems)
+        .map((item, index) => ({ item, rank: index + 1 }));
     }
 
     function fullRankMap(scope = 'overall') {
