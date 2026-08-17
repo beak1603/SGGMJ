@@ -1778,12 +1778,28 @@
         max-width: 100% !important;
       }
       .split .name {
-        display: block !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 2px !important;
+        overflow: visible !important;
         white-space: nowrap !important;
         font-size: 10px !important;
         line-height: 1.2 !important;
+      }
+
+      .split .name-link {
+        min-width: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+      .split .new-badge {
+        display: inline-block !important;
+        flex: 0 0 auto !important;
+        margin-left: 1px !important;
+        font-size: 7px !important;
+        line-height: 1 !important;
+        padding: 0 !important;
       }
       .split .likes {
         min-width: 0 !important;
@@ -1925,7 +1941,8 @@
       top10: false,
       loadSeq: 0,
       isAdmin: false,
-      adminCode: ''
+      adminCode: '',
+      sharedNewApplicants: new Set()
     };
 
     const STORAGE_KEY = 'soop-rank-manual-gender-v1';
@@ -2136,7 +2153,7 @@
 
     async function fetchCloudGenderMap() {
       const response = await fetch(
-        `${CONFIG.supabaseUrl}/rest/v1/gender_overrides?select=applicant_key,gender,nickname`,
+        `${CONFIG.supabaseUrl}/rest/v1/gender_overrides?select=applicant_key,gender,nickname,new_until`,
         {
           headers: { apikey: CONFIG.supabasePublishableKey },
           cache: 'no-store'
@@ -2145,11 +2162,16 @@
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const rows = await response.json();
       const cloud = {};
+      const sharedNew = new Set();
+      const now = Date.now();
       for (const row of Array.isArray(rows) ? rows : []) {
         const key = String(row?.applicant_key || '').trim();
         const gender = String(row?.gender || '').trim();
         if (key && (gender === 'female' || gender === 'male' || gender === 'unknown')) cloud[key] = gender;
+        const newUntil = row?.new_until ? Date.parse(row.new_until) : 0;
+        if (key && Number.isFinite(newUntil) && newUntil > now) sharedNew.add(key);
       }
+      state.sharedNewApplicants = sharedNew;
       return cloud;
     }
 
@@ -2180,7 +2202,8 @@
             p_admin_code: state.adminCode,
             p_keys: Array.isArray(payload?.keys) ? payload.keys : [],
             p_gender: String(payload?.gender || ''),
-            p_nickname: String(payload?.nickname || '')
+            p_nickname: String(payload?.nickname || ''),
+            p_mark_new: Boolean(payload?.markNew)
           };
         } else if (operation === 'reset') {
           rpcName = 'reset_gender_overrides';
@@ -2209,10 +2232,10 @@
       }
     }
 
-    async function syncGenderForItem(item, gender) {
+    async function syncGenderForItem(item, gender, markNew = false) {
       const keys = manualGenderKeys(item);
       if (!keys.length) return false;
-      return syncGenderOperation({ operation: 'set', keys, gender, nickname: item?.nickname || '' });
+      return syncGenderOperation({ operation: 'set', keys, gender, nickname: item?.nickname || '', markNew });
     }
 
     async function syncStandaloneGenderKey(key, gender, nickname = '') {
@@ -2782,8 +2805,8 @@
         else state.manualGenderOverrides[key] = gender;
         if (beforeGender && beforeGender !== gender) state.newDraggedApplicants.add(key);
         saveManualGenderOverrides();
-        if (item) syncGenderForItem(item, gender);
-        else syncStandaloneGenderKey(key, gender);
+        if (item) syncGenderForItem(item, gender, true);
+        else syncGenderOperation({ operation: 'set', keys: [key], gender, nickname: '', markNew: true });
         render();
       }
       draggedKey = '';
