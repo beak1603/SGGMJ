@@ -1,0 +1,25 @@
+name: Apply cutoff diagonal gradient
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-cutoff-diagonal-gradient.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python patch_cutoff_diagonal_gradient.py
+      - name: Commit site update
+        run: |
+          git config user.name "beak1603"
+          git config user.email "317630447+beak1603@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Refine cutoff bar diagonal gradient"
+          git push
