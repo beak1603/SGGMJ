@@ -2168,7 +2168,7 @@
       <div id="deadlineCountdown" class="deadline-countdown" role="status" aria-live="polite">
         <span class="deadline-label">신청 마감까지</span>
         <strong id="deadlineTime">계산 중...</strong>
-        <span class="deadline-date">8월 21일 23:59 마감</span>
+        <span class="deadline-date">8/21 23:59 마감</span>
       </div>
       <div class="hero-meta" aria-label="참가자 통계">
         <div class="stat"><span class="label">전체 신청자</span><span class="value" id="totalCount">-</span></div>
@@ -2307,7 +2307,7 @@
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const seconds = totalSeconds % 60;
 
-      timeEl.textContent = `${days}일 ${String(hours).padStart(2, '0')}시간 ${String(minutes).padStart(2, '0')}분 ${String(seconds).padStart(2, '0')}초`;
+      timeEl.textContent = `${days}일 ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
       if (remaining < 3 * 60 * 60 * 1000) box.classList.add('is-urgent');
       else if (remaining < 24 * 60 * 60 * 1000) box.classList.add('is-warning');
