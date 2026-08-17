@@ -2323,8 +2323,8 @@
     .female-board .top100-cutoff-label,
     .male-board .top100-cutoff-label {
       width: 100% !important;
-      height: 20px !important;
-      min-height: 20px !important;
+      height: 26px !important;
+      min-height: 26px !important;
       margin: 0 !important;
       padding: 0 !important;
       display: flex !important;
@@ -2336,10 +2336,10 @@
       background-image: none !important;
       box-shadow: none !important;
       color: #fff !important;
-      font-size: 10px !important;
-      font-weight: 900 !important;
+      font-size: 13px !important;
+      font-weight: 950 !important;
       line-height: 1 !important;
-      letter-spacing: .025em !important;
+      letter-spacing: .02em !important;
       text-align: center !important;
       user-select: none !important;
       pointer-events: none !important;
@@ -2355,9 +2355,9 @@
       .top100-cutoff-label,
       .female-board .top100-cutoff-label,
       .male-board .top100-cutoff-label {
-        height: 17px !important;
-        min-height: 17px !important;
-        font-size: 8px !important;
+        height: 23px !important;
+        min-height: 23px !important;
+        font-size: 11px !important;
       }
     }
 
@@ -3345,10 +3345,8 @@
       const rankMap = isSearch ? fullRankMap(scope) : null;
       const visible = isSearch && state.top10
         ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 100).sort(compareRankItems)
-        : (state.top10 && scope === 'overall' ? [...items].sort(compareRankItems) : takeTopRanks(items));
-      const displayCount = state.top10
-        ? (scope === 'overall' ? Math.min(100, totalCount) : Math.min(100, visible.length))
-        : totalCount;
+        : [...items].sort(compareRankItems);
+      const displayCount = totalCount;
       const genderClass = genderDrop === 'female' ? ' female-board' : genderDrop === 'male' ? ' male-board' : '';
       const dropAttrs = genderDrop ? ` data-gender-drop="${genderDrop}" class="board drop-zone${genderClass}"` : ' class="board"';
       const draggable = Boolean(genderDrop) && state.isAdmin;
@@ -3400,7 +3398,7 @@
       const maleTop100Cutoff = Math.min(50, fullMaleCount);
       const femaleTop100Cutoff = Math.min(100, 100 - maleTop100Cutoff);
       const showGenderCutoff = state.top10 && state.splitGender && !state.query.trim();
-      $('#totalCount').textContent = (state.top10 ? Math.min(100, state.comments.length) : state.comments.length).toLocaleString();
+      $('#totalCount').textContent = state.comments.length.toLocaleString();
       $('#femaleCount').textContent = fullFemaleCount.toLocaleString();
       $('#maleCount').textContent = fullMaleCount.toLocaleString();
       if (unknownCountEl) unknownCountEl.textContent = fullUnknownCount.toLocaleString();
