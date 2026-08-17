@@ -1,0 +1,25 @@
+name: Apply TOP100 total stat
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-top100-total-stat.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python patch_top100_total_stat.py
+      - name: Commit site update
+        run: |
+          git config user.name "beak1603"
+          git config user.email "317630447+beak1603@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Keep TOP100 total stat at 100"
+          git push
