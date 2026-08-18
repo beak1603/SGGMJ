@@ -3562,9 +3562,8 @@
       const totalCount = items.length;
       const isSearch = Boolean(state.query.trim());
       const rankMap = isSearch ? fullRankMap('unknown') : null;
-      const visible = isSearch && state.top10
-        ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 100).sort(compareRankItems)
-        : takeTopRanks(items);
+      // 검색 결과는 원래 순위를 유지하되 TOP 100 바깥 신청자도 숨기지 않습니다.
+      const visible = isSearch ? [...items].sort(compareRankItems) : takeTopRanks(items);
       const rankedVisible = isSearch
         ? [...visible].sort(compareRankItems).map(item => ({ item, rank: rankMap.get(itemKey(item)) || 0 }))
         : rankedItems(visible);
@@ -3585,9 +3584,8 @@
       const totalCount = items.length;
       const isSearch = Boolean(state.query.trim());
       const rankMap = isSearch ? fullRankMap(scope) : null;
-      const visible = isSearch && state.top10
-        ? [...items].filter(item => (rankMap.get(itemKey(item)) || Infinity) <= 100).sort(compareRankItems)
-        : [...items].sort(compareRankItems);
+      // 검색 중에는 TOP 100 상태와 관계없이 모든 일치 신청자를 보여줍니다.
+      const visible = [...items].sort(compareRankItems);
       const displayCount = totalCount;
       const genderClass = genderDrop === 'female' ? ' female-board' : genderDrop === 'male' ? ' male-board' : '';
       const dropAttrs = genderDrop ? ` data-gender-drop="${genderDrop}" class="board drop-zone${genderClass}"` : ' class="board"';
