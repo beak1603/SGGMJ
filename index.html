@@ -3418,7 +3418,7 @@
       return `<div class="unknown-row" data-comment-url="${esc(commentUrl(item))}" role="link" tabindex="0">
         <div class="rank-num">${rank}</div>
         ${avatarHtml(item)}
-        <div class="name" title="${esc(item.nickname)}">${nameHtml(item)}${badgeHtml(item)}</div>
+        <div class="name" title="${esc(item.nickname)}">${nameHtml(item)}${badgeHtml(item)}${rankMoveHtml(item, 'overall')}</div>
         <div class="likes"><span class="heart">♥</span>${item.likes.toLocaleString()}</div>
         ${actions}
       </div>`;
