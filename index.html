@@ -3523,7 +3523,7 @@
       if (!delta || expiresAt <= Date.now()) return '';
       const cls = delta > 0 ? 'up' : 'down';
       const arrow = delta > 0 ? '▲' : '▼';
-      return `<span class="rank-move ${cls}" title="마지막 순위 변동 후 6시간 동안 표시">${arrow}${Math.abs(delta)}</span>`;
+      return `<span class="rank-move ${cls}" title="마지막 순위 변동 후 1시간 동안 표시">${arrow}${Math.abs(delta)}</span>`;
     }
 
     function rowHtml(item, rank, draggable = false, scope = 'overall', cutoffAfter = false) {
