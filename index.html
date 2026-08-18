@@ -3303,9 +3303,7 @@
         if (lastUpdatedText) lastUpdatedText.textContent = `최근 갱신 ${formatTime(state.updatedAt)}`;
         render();
 
-        const duplicateCount = Math.max(0, state.rawCommentCount - state.comments.length);
-        const duplicateText = duplicateCount ? ` · 중복 댓글 계정 ${duplicateCount.toLocaleString()}건 통합` : '';
-        setStatus('live', `신청 댓글 ${state.rawCommentCount.toLocaleString()}개 → 고유 신청자 ${state.comments.length.toLocaleString()}명${duplicateText} · ${formatTime(state.updatedAt)} 기준`);
+        setStatus('live', '');
       } catch (err) {
         if (seq !== state.loadSeq) return;
         console.error(err);
@@ -3322,6 +3320,7 @@
     function setStatus(type, message) {
       statusDot.className = 'dot' + (type === 'live' ? ' live' : type === 'error' ? ' error' : '');
       statusText.textContent = message;
+      statusText.closest('.status-left')?.classList.toggle('is-hidden', type === 'live' && !message);
     }
 
     function formatTime(date) {
