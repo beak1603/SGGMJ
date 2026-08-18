@@ -1,0 +1,22 @@
+{
+  "name": "스까묵자 배그",
+  "short_name": "스까묵자 배그",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5fbff",
+  "theme_color": "#eaf7ff",
+  "icons": [
+    {
+      "src": "/favicon-32x32.png?v=20260818-2",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png?v=20260818-2",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
