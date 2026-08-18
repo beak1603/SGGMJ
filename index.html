@@ -2412,6 +2412,37 @@
       }
     }
 
+    .admin-stack {
+      display: flex;
+      flex: 0 0 auto;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+    }
+    .visitor-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 12px;
+      padding-left: 2px;
+      color: #748794;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .visitor-count::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #aebfc9;
+    }
+    .visitor-count.is-live::before {
+      background: #32bf72;
+      box-shadow: 0 0 0 3px rgba(50,191,114,.10);
+    }
+
     .unofficial-notice {
       margin: 16px 2px 0;
       color: var(--muted);
@@ -2437,7 +2468,10 @@
 <body class="top100-mode">
   <main class="wrap">
     <div class="page-topline">
-      <button id="adminBtn" class="admin-btn" type="button" aria-pressed="false">🔒 관리자</button>
+      <div class="admin-stack">
+        <span id="visitorCount" class="visitor-count" role="status" aria-live="polite" title="현재 홈페이지를 열어 둔 브라우저 수">현재 접속 -명</span>
+        <button id="adminBtn" class="admin-btn" type="button" aria-pressed="false">🔒 관리자</button>
+      </div>
       <a class="source-link" href="https://www.sooplive.com/station/gosegu2/post/204391425" target="_blank" rel="noopener noreferrer">원본 게시글 ↗</a>
     </div>
     <section class="hero">
@@ -2505,6 +2539,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js" integrity="sha384-qafw21c/iciq0VXsi9FzkfoQv5I/V0iqE4lSNcKXPnW9/UTJLnv5CcN4FHxVLnKg" crossorigin="anonymous"></script>
   <script>
     const CONFIG = {
       channelId: 'gosegu2',
@@ -2573,6 +2608,83 @@
     const lastUpdatedText = $('#lastUpdatedText');
     const unknownAdminStat = $('#unknownAdminStat');
     const unknownCountEl = $('#unknownCount');
+    const visitorCountEl = $('#visitorCount');
+
+    const VISITOR_PRESENCE_SESSION_KEY = 'sgmj-visitor-presence-key-v1';
+    let visitorPresenceClient = null;
+    let visitorPresenceChannel = null;
+
+    function getVisitorPresenceKey() {
+      try {
+        let key = sessionStorage.getItem(VISITOR_PRESENCE_SESSION_KEY);
+        if (!key) {
+          key = self.crypto?.randomUUID?.() || `visitor-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          sessionStorage.setItem(VISITOR_PRESENCE_SESSION_KEY, key);
+        }
+        return key;
+      } catch {
+        return `visitor-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      }
+    }
+
+    function setVisitorCount(count) {
+      if (!visitorCountEl) return;
+      const validCount = Number.isFinite(count) && count >= 0;
+      visitorCountEl.textContent = validCount ? `현재 접속 ${count.toLocaleString()}명` : '현재 접속 -명';
+      visitorCountEl.classList.toggle('is-live', validCount);
+    }
+
+    function updateVisitorPresenceCount() {
+      if (!visitorPresenceChannel) return;
+      const presenceState = visitorPresenceChannel.presenceState();
+      setVisitorCount(Object.keys(presenceState || {}).length);
+    }
+
+    function startVisitorPresence() {
+      if (!visitorCountEl || visitorPresenceChannel) return;
+      const createClient = window.supabase?.createClient;
+      if (typeof createClient !== 'function') {
+        setVisitorCount(NaN);
+        return;
+      }
+
+      try {
+        visitorPresenceClient = createClient(CONFIG.supabaseUrl, CONFIG.supabasePublishableKey, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        });
+        visitorPresenceChannel = visitorPresenceClient.channel('sgmj-live-visitors', {
+          config: { presence: { key: getVisitorPresenceKey() } }
+        });
+
+        visitorPresenceChannel
+          .on('presence', { event: 'sync' }, updateVisitorPresenceCount)
+          .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+              await visitorPresenceChannel.track({ online_at: new Date().toISOString() });
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+              setVisitorCount(NaN);
+            }
+          });
+      } catch (error) {
+        console.warn('Visitor presence unavailable', error);
+        setVisitorCount(NaN);
+      }
+    }
+
+    function stopVisitorPresence() {
+      if (!visitorPresenceChannel) return;
+      try {
+        const channel = visitorPresenceChannel;
+        const client = visitorPresenceClient;
+        visitorPresenceChannel = null;
+        visitorPresenceClient = null;
+        Promise.resolve(channel.untrack()).finally(() => client?.removeChannel(channel));
+      } catch {}
+    }
 
     function updateDeadlineCountdown() {
       const box = $('#deadlineCountdown');
@@ -3865,7 +3977,10 @@
     updateDeadlineCountdown();
     setInterval(updateDeadlineCountdown, 1000);
 
-    window.addEventListener('pagehide', () => dismissCurrentNewBadges(false));
+    window.addEventListener('pagehide', () => {
+      dismissCurrentNewBadges(false);
+      stopVisitorPresence();
+    });
     // Edge 등에서 뒤로가기로 이전 화면 캐시가 복원되면 최신 데이터를 다시 불러옵니다.
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) window.location.reload();
@@ -3875,6 +3990,7 @@
     state.adminCode = loadAdminCodeSession();
     if (state.isAdmin && !state.adminCode) state.isAdmin = false;
     updateAdminUi();
+    startVisitorPresence();
     state.manualGenderOverrides = loadManualGenderOverrides();
     loadCloudGenderOverrides();
     if (state.isAdmin) syncAllLocalOverridesToCloud();
