@@ -2412,6 +2412,26 @@
       }
     }
 
+    .unofficial-notice {
+      margin: 16px 2px 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.55;
+      text-align: center;
+    }
+    .unofficial-notice + .content {
+      margin-top: 9px;
+    }
+    @media (max-width: 760px) {
+      .unofficial-notice {
+        margin-top: 14px;
+        padding: 0 4px;
+        font-size: 11px;
+        text-align: left;
+      }
+    }
+
 </style>
 </head>
 <body class="top100-mode">
@@ -2467,6 +2487,7 @@
       </div>
     </section>
 
+    <p class="unofficial-notice">이 홈페이지는 공식 홈페이지가 아니며, 실제 컨텐츠 선정 인원은 커트라인과 상이할 수 있습니다</p>
     <section id="content" class="content" aria-live="polite"></section>
   </main>
 
