@@ -3017,12 +3017,7 @@
       if (manual) return manual;
       if (CONFIG.genderOverrides[item.id]) return CONFIG.genderOverrides[item.id];
 
-      const t = item.text.normalize('NFKC').toLowerCase();
-      const female = /(공주|여자|여성|여캠|female|woman)/i.test(t);
-      const male = /(하인|노예|머슴|남자|남성|male|man)/i.test(t);
-
-      if (female && !male) return 'female';
-      if (male && !female) return 'male';
+      // 저장된 분류가 없는 신규 신청자는 댓글 문구로 성별을 추측하지 않습니다.
       return 'unknown';
     }
 
