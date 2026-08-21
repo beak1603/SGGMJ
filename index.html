@@ -2270,6 +2270,39 @@
     }
 
 
+    /* ===== Deadline countdown: larger red timer ===== */
+    .deadline-countdown .deadline-label,
+    .deadline-countdown.is-warning .deadline-label,
+    .deadline-countdown.is-urgent .deadline-label,
+    .deadline-countdown.is-closed .deadline-label {
+      color: #a43f3f !important;
+    }
+    .deadline-countdown strong,
+    .deadline-countdown.is-warning strong,
+    .deadline-countdown.is-urgent strong,
+    .deadline-countdown.is-closed strong {
+      color: #d62f2f !important;
+      font-size: 31px !important;
+      line-height: 1 !important;
+      letter-spacing: -.025em !important;
+      text-shadow: 0 2px 10px rgba(214, 47, 47, .12);
+    }
+    .deadline-countdown .deadline-date,
+    .deadline-countdown.is-warning .deadline-date,
+    .deadline-countdown.is-urgent .deadline-date,
+    .deadline-countdown.is-closed .deadline-date {
+      color: #ad5b5b !important;
+    }
+    @media (max-width: 640px) {
+      .deadline-countdown strong,
+      .deadline-countdown.is-warning strong,
+      .deadline-countdown.is-urgent strong,
+      .deadline-countdown.is-closed strong {
+        font-size: 22px !important;
+      }
+    }
+
+
     /* ===== Mobile page background gradient: top-right to bottom-left ===== */
     @media (max-width: 640px) {
       html {
