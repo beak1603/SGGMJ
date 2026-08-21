@@ -2512,16 +2512,15 @@
         <div class="status-right"><span id="lastUpdatedText" class="last-updated">최근 갱신 -</span><button class="refresh" id="refreshBtn" type="button">새로고침</button></div>
       </div>
 
+      <div class="comment-count-summary" aria-label="댓글 집계 현황">
+        <span class="count-chip">게시글 댓글갯수 <strong id="postCommentCount">-</strong>개</span>
+        <span class="count-chip">실제 신청댓글 <strong id="applicationCommentCount">-</strong>개</span>
+        <span class="count-chip excluded">제외댓글(대댓글 등) <strong id="excludedCommentCount">-</strong>개</span>
+      </div>
     </section>
 
     <p class="unofficial-notice">이 홈페이지는 공식 홈페이지가 아니며, 실제 컨텐츠 선정 인원은 커트라인과 상이할 수 있습니다</p>
     <section id="content" class="content" aria-live="polite"></section>
-
-    <div class="comment-count-summary" aria-label="댓글 집계 현황">
-      <span class="count-chip">게시글 댓글갯수 <strong id="postCommentCount">-</strong>개</span>
-      <span class="count-chip">실제 신청댓글 <strong id="applicationCommentCount">-</strong>개</span>
-      <span class="count-chip excluded">제외댓글(대댓글 등) <strong id="excludedCommentCount">-</strong>개</span>
-    </div>
   </main>
 
   <div id="adminModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
