@@ -2303,6 +2303,44 @@
     }
 
 
+    /* ===== Deadline countdown: closed message ===== */
+    .deadline-countdown.is-complete {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-end !important;
+      justify-content: flex-start !important;
+      gap: 5px !important;
+      text-align: right !important;
+    }
+    .deadline-countdown.is-complete .deadline-closed-title {
+      color: #d62f2f !important;
+      font-size: 25px !important;
+      line-height: 1.15 !important;
+      font-weight: 950 !important;
+      letter-spacing: -.025em !important;
+      white-space: nowrap !important;
+      text-shadow: 0 2px 10px rgba(214, 47, 47, .12);
+    }
+    .deadline-countdown.is-complete .deadline-closed-note {
+      color: #ad5b5b !important;
+      font-size: 13px !important;
+      line-height: 1.35 !important;
+      font-weight: 850 !important;
+      white-space: nowrap !important;
+    }
+    @media (max-width: 640px) {
+      .deadline-countdown.is-complete {
+        gap: 4px !important;
+      }
+      .deadline-countdown.is-complete .deadline-closed-title {
+        font-size: 19px !important;
+      }
+      .deadline-countdown.is-complete .deadline-closed-note {
+        font-size: 11px !important;
+      }
+    }
+
+
     /* ===== Mobile page background gradient: top-right to bottom-left ===== */
     @media (max-width: 640px) {
       html {
@@ -2718,17 +2756,25 @@
 
     function updateDeadlineCountdown() {
       const box = $('#deadlineCountdown');
-      const timeEl = $('#deadlineTime');
-      if (!box || !timeEl) return;
+      if (!box) return;
 
       const remaining = APPLICATION_DEADLINE - Date.now();
-      box.classList.remove('is-warning', 'is-urgent', 'is-closed');
 
       if (remaining <= 0) {
-        timeEl.textContent = '신청이 마감되었습니다';
-        box.classList.add('is-closed');
+        if (!box.classList.contains('is-complete')) {
+          box.innerHTML = `
+            <strong class="deadline-closed-title">신청이 마감되었습니다!</strong>
+            <span class="deadline-closed-note">합격자 발표는 22일(오늘) 예정입니다</span>
+          `;
+          box.classList.remove('is-warning', 'is-urgent');
+          box.classList.add('is-closed', 'is-complete');
+        }
         return;
       }
+
+      const timeEl = $('#deadlineTime');
+      if (!timeEl) return;
+      box.classList.remove('is-warning', 'is-urgent', 'is-closed', 'is-complete');
 
       const totalSeconds = Math.floor(remaining / 1000);
       const days = Math.floor(totalSeconds / 86400);
