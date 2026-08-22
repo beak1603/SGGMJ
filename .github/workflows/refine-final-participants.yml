@@ -1,0 +1,209 @@
+name: Refine final participant matching
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/refine-final-participants.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refine matching and soften highlight
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          old_css = '''    .rank-row.featured-broadcaster,
+    .unknown-row.featured-broadcaster {
+      background:
+        linear-gradient(90deg,
+          rgba(255, 250, 226, .98) 0%,
+          rgba(255, 239, 177, .96) 28%,
+          rgba(255, 214, 102, .84) 52%,
+          rgba(255, 236, 168, .95) 76%,
+          rgba(255, 249, 222, .98) 100%) !important;
+      box-shadow:
+        inset 4px 0 0 rgba(190, 132, 16, .52),
+        inset 0 1px 0 rgba(255,255,255,.58),
+        0 4px 14px rgba(181, 132, 26, .10) !important;
+    }
+    .rank-row.featured-broadcaster:hover,
+    .unknown-row.featured-broadcaster:hover {
+      background:
+        linear-gradient(90deg,
+          rgba(255, 247, 211, 1) 0%,
+          rgba(255, 232, 154, .99) 28%,
+          rgba(255, 203, 73, .90) 52%,
+          rgba(255, 229, 143, .98) 76%,
+          rgba(255, 246, 207, 1) 100%) !important;
+    }
+    .rank-row.featured-broadcaster .name-link,
+    .unknown-row.featured-broadcaster .name-link {
+      color: #6e4a00 !important;
+      font-weight: 950 !important;
+    }
+    .rank-row.featured-broadcaster .likes,
+    .unknown-row.featured-broadcaster .likes {
+      color: #775000 !important;
+      border-color: rgba(205, 158, 46, .56) !important;
+      background: rgba(255,255,255,.63) !important;
+    }
+    .rank-row.featured-broadcaster .heart,
+    .unknown-row.featured-broadcaster .heart {
+      color: #d98518 !important;
+    }'''
+
+          new_css = '''    .rank-row.featured-broadcaster,
+    .unknown-row.featured-broadcaster {
+      background:
+        linear-gradient(90deg,
+          rgba(255, 253, 246, .92) 0%,
+          rgba(252, 246, 226, .88) 30%,
+          rgba(247, 235, 200, .82) 52%,
+          rgba(252, 246, 226, .88) 75%,
+          rgba(255, 253, 246, .92) 100%) !important;
+      box-shadow:
+        inset 3px 0 0 rgba(184, 145, 55, .34),
+        inset 0 1px 0 rgba(255,255,255,.54),
+        0 2px 8px rgba(145, 111, 38, .045) !important;
+    }
+    .rank-row.featured-broadcaster:hover,
+    .unknown-row.featured-broadcaster:hover {
+      background:
+        linear-gradient(90deg,
+          rgba(255, 252, 241, .96) 0%,
+          rgba(250, 242, 217, .92) 30%,
+          rgba(244, 228, 187, .86) 52%,
+          rgba(250, 242, 217, .92) 75%,
+          rgba(255, 252, 241, .96) 100%) !important;
+    }
+    .rank-row.featured-broadcaster .name-link,
+    .unknown-row.featured-broadcaster .name-link {
+      color: #5f5234 !important;
+      font-weight: 950 !important;
+    }
+    .rank-row.featured-broadcaster .likes,
+    .unknown-row.featured-broadcaster .likes {
+      color: #6a5932 !important;
+      border-color: rgba(193, 162, 91, .32) !important;
+      background: rgba(255,255,255,.58) !important;
+    }
+    .rank-row.featured-broadcaster .heart,
+    .unknown-row.featured-broadcaster .heart {
+      color: #bd8b35 !important;
+    }'''
+
+          if old_css not in s:
+              raise SystemExit('featured CSS block not found')
+          s = s.replace(old_css, new_css, 1)
+
+          old_mobile = '''      .rank-row.featured-broadcaster,
+      .unknown-row.featured-broadcaster {
+        box-shadow:
+          inset 3px 0 0 rgba(190,132,16,.48),
+          0 2px 8px rgba(181,132,26,.08) !important;
+      }'''
+          new_mobile = '''      .rank-row.featured-broadcaster,
+      .unknown-row.featured-broadcaster {
+        box-shadow:
+          inset 2px 0 0 rgba(184,145,55,.30),
+          0 1px 5px rgba(145,111,38,.04) !important;
+      }'''
+          if old_mobile not in s:
+              raise SystemExit('mobile featured CSS block not found')
+          s = s.replace(old_mobile, new_mobile, 1)
+
+          old_js = '''    function applyFeaturedBroadcasterHighlights() {
+      document.querySelectorAll('.rank-row, .unknown-row').forEach((row) => {
+        const nickname = row.querySelector('.name-link')?.textContent?.trim() || '';
+        row.classList.toggle('featured-broadcaster', FEATURED_BROADCASTERS.has(nickname));
+      });
+    }
+'''
+          new_js = r'''    function normalizeBroadcasterName(value) {
+      return String(value || '')
+        .normalize('NFKC')
+        .toLocaleLowerCase('ko')
+        .replace(/[^0-9a-zA-Z가-힣]/g, '');
+    }
+
+    function broadcasterEditDistance(a, b) {
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+      const curr = new Array(b.length + 1);
+      for (let i = 1; i <= a.length; i++) {
+        curr[0] = i;
+        for (let j = 1; j <= b.length; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          curr[j] = Math.min(
+            curr[j - 1] + 1,
+            prev[j] + 1,
+            prev[j - 1] + cost
+          );
+        }
+        for (let j = 0; j <= b.length; j++) prev[j] = curr[j];
+      }
+      return prev[b.length];
+    }
+
+    const NORMALIZED_FEATURED_BROADCASTERS = [...FEATURED_BROADCASTERS]
+      .map(normalizeBroadcasterName)
+      .filter(Boolean);
+
+    function isFeaturedBroadcasterName(nickname) {
+      const target = normalizeBroadcasterName(nickname);
+      if (!target) return false;
+
+      return NORMALIZED_FEATURED_BROADCASTERS.some((candidate) => {
+        if (target === candidate) return true;
+
+        const shorter = target.length <= candidate.length ? target : candidate;
+        const longer = target.length > candidate.length ? target : candidate;
+        const lengthGap = longer.length - shorter.length;
+
+        // 방송국 이름 뒤에 기호/짧은 수식어가 붙거나 일부가 빠진 정도는 같은 사람으로 봅니다.
+        if (
+          shorter.length >= 3 &&
+          longer.includes(shorter) &&
+          lengthGap <= Math.max(3, Math.floor(longer.length * 0.35))
+        ) return true;
+
+        // 한두 글자 오타·표기 차이도 허용하되 너무 짧은 이름은 과매칭하지 않습니다.
+        if (shorter.length < 3) return false;
+        const maxDistance = longer.length >= 7 ? 2 : 1;
+        return broadcasterEditDistance(target, candidate) <= maxDistance;
+      });
+    }
+
+    function applyFeaturedBroadcasterHighlights() {
+      document.querySelectorAll('.rank-row, .unknown-row').forEach((row) => {
+        const nickname = row.querySelector('.name-link')?.textContent?.trim() || '';
+        row.classList.toggle('featured-broadcaster', isFeaturedBroadcasterName(nickname));
+      });
+    }
+'''
+          if old_js not in s:
+              raise SystemExit('featured matching function not found')
+          s = s.replace(old_js, new_js, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          rm .github/workflows/refine-final-participants.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/refine-final-participants.yml
+          git commit -m "참가자 이름 유사 매칭 및 골드 강조 완화"
+          git push
