@@ -1,0 +1,32 @@
+name: Run final participant patch
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/final_participants_patch.py
+      - name: Commit result and clean up
+        shell: bash
+        run: |
+          rm -f .github/workflows/final-participants.yml
+          rm -f .github/workflows/final-participants-run.yml
+          rm -f .github/final_participants_patch.py
+          rm -f .github/final-participants-trigger.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "최종 참가자 발표 및 방송인 강조 적용"
+          git push
