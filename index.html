@@ -2913,10 +2913,15 @@
     const NORMALIZED_FEATURED_BROADCASTERS = [...FEATURED_BROADCASTERS]
       .map(normalizeBroadcasterName)
       .filter(Boolean);
+    const EXCLUDED_FEATURED_BROADCASTERS = new Set([
+      normalizeBroadcasterName('춘빵이'),
+      normalizeBroadcasterName('김먕이'),
+      normalizeBroadcasterName('세이지')
+    ]);
 
     function isFeaturedBroadcasterName(nickname) {
       const target = normalizeBroadcasterName(nickname);
-      if (!target) return false;
+      if (!target || EXCLUDED_FEATURED_BROADCASTERS.has(target)) return false;
 
       return NORMALIZED_FEATURED_BROADCASTERS.some((candidate) => {
         if (target === candidate) return true;
