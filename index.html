@@ -2539,40 +2539,40 @@
     .unknown-row.featured-broadcaster {
       background:
         linear-gradient(90deg,
-          rgba(255, 250, 226, .98) 0%,
-          rgba(255, 239, 177, .96) 28%,
-          rgba(255, 214, 102, .84) 52%,
-          rgba(255, 236, 168, .95) 76%,
-          rgba(255, 249, 222, .98) 100%) !important;
+          rgba(255, 253, 246, .92) 0%,
+          rgba(252, 246, 226, .88) 28%,
+          rgba(247, 235, 200, .82) 52%,
+          rgba(252, 246, 226, .88) 76%,
+          rgba(255, 253, 246, .92) 100%) !important;
       box-shadow:
-        inset 4px 0 0 rgba(190, 132, 16, .52),
+        inset 3px 0 0 rgba(184, 145, 55, .34),
         inset 0 1px 0 rgba(255,255,255,.58),
-        0 4px 14px rgba(181, 132, 26, .10) !important;
+        0 2px 8px rgba(145, 111, 38, .045) !important;
     }
     .rank-row.featured-broadcaster:hover,
     .unknown-row.featured-broadcaster:hover {
       background:
         linear-gradient(90deg,
-          rgba(255, 247, 211, 1) 0%,
-          rgba(255, 232, 154, .99) 28%,
-          rgba(255, 203, 73, .90) 52%,
-          rgba(255, 229, 143, .98) 76%,
-          rgba(255, 246, 207, 1) 100%) !important;
+          rgba(255, 252, 241, .96) 0%,
+          rgba(250, 242, 217, .92) 28%,
+          rgba(244, 228, 187, .86) 52%,
+          rgba(250, 242, 217, .92) 76%,
+          rgba(255, 252, 241, .96) 100%) !important;
     }
     .rank-row.featured-broadcaster .name-link,
     .unknown-row.featured-broadcaster .name-link {
-      color: #6e4a00 !important;
+      color: #5f5234 !important;
       font-weight: 950 !important;
     }
     .rank-row.featured-broadcaster .likes,
     .unknown-row.featured-broadcaster .likes {
-      color: #775000 !important;
-      border-color: rgba(205, 158, 46, .56) !important;
+      color: #6a5932 !important;
+      border-color: rgba(193, 162, 91, .32) !important;
       background: rgba(255,255,255,.63) !important;
     }
     .rank-row.featured-broadcaster .heart,
     .unknown-row.featured-broadcaster .heart {
-      color: #d98518 !important;
+      color: #bd8b35 !important;
     }
 
     /* Final announcement replaces the expired deadline UI. */
@@ -2611,8 +2611,8 @@
       .rank-row.featured-broadcaster,
       .unknown-row.featured-broadcaster {
         box-shadow:
-          inset 3px 0 0 rgba(190,132,16,.48),
-          0 2px 8px rgba(181,132,26,.08) !important;
+          inset 2px 0 0 rgba(184,145,55,.30),
+          0 1px 5px rgba(145,111,38,.04) !important;
       }
       .deadline-countdown.final-announcement,
       .deadline-countdown.is-warning.final-announcement,
@@ -2756,10 +2756,61 @@
     const contentEl = $('#content');
     const FEATURED_BROADCASTERS = new Set(["강드-", "강주이", "광수야.", "길앞잡이광수", "김메이", "김뱅글:Þ", "김부각º", "깅도일", "깡담비", "깨박이깨박이", "꼬부기07.", "꼼모리", "꿈틀__", "난워니-_-+", "냐쵸♥", "냥쏘", "니즈__", "델라리", "도깨비루딘", "도이지", "땡글땡글포포", "뜨사.", "라벤_", "릉빵이", "리르", "리리하", "마또", "마이곰이", "매그피이", "묭씨", "박나닝", "박사장", "방랑검객강풍", "방진구", "버터우스3세", "부바", "블랙워크", "비즈니스킴-", "빈스", "빡룡", "뽀린걸", "샤르망", "샤키_", "솔롱고스", "수셈이", "숙봉이", "시몽", "시트리", "신루_", "아야네_세나", "야구자", "양도끼", "양지랖", "어둠우주기사", "연토리뿡치", "연푸_", "오구", "오그림", "오따식", "오정제", "요한.3.", "우앵두", "윤견", "이지상:)", "이학일.", "재수피기", "제갈_통", "제로!", "제이404", "주드", "쥐쥐.", "쪼이.", "차승원_", "촌장_고봉", "최또", "최애리", "춘봉_", "치유+", "치즈치즈♪", "치카:3", "카노ミ☆", "코렛트", "코코미짱", "코코양", "클라비스", "토끼예나", "파니_", "프트9", "하루아_", "하율옹", "한결___", "항상#킴성태", "헤다ㆍ", "후룽카카", "히루", "힌콕", "힙비", "EscA_에스카", "S.드라구노프"]);
 
+    function normalizeBroadcasterName(value) {
+      return String(value || '')
+        .normalize('NFKC')
+        .toLocaleLowerCase('ko')
+        .replace(/[^0-9a-zA-Z가-힣]/g, '');
+    }
+
+    function broadcasterEditDistance(a, b) {
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+      const curr = new Array(b.length + 1);
+      for (let i = 1; i <= a.length; i++) {
+        curr[0] = i;
+        for (let j = 1; j <= b.length; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+        }
+        for (let j = 0; j <= b.length; j++) prev[j] = curr[j];
+      }
+      return prev[b.length];
+    }
+
+    const NORMALIZED_FEATURED_BROADCASTERS = [...FEATURED_BROADCASTERS]
+      .map(normalizeBroadcasterName)
+      .filter(Boolean);
+
+    function isFeaturedBroadcasterName(nickname) {
+      const target = normalizeBroadcasterName(nickname);
+      if (!target) return false;
+
+      return NORMALIZED_FEATURED_BROADCASTERS.some((candidate) => {
+        if (target === candidate) return true;
+
+        const shorter = target.length <= candidate.length ? target : candidate;
+        const longer = target.length > candidate.length ? target : candidate;
+        const lengthGap = longer.length - shorter.length;
+
+        if (
+          shorter.length >= 3 &&
+          longer.includes(shorter) &&
+          lengthGap <= Math.max(3, Math.floor(longer.length * 0.35))
+        ) return true;
+
+        if (shorter.length < 3) return false;
+        const maxDistance = longer.length >= 7 ? 2 : 1;
+        return broadcasterEditDistance(target, candidate) <= maxDistance;
+      });
+    }
+
     function applyFeaturedBroadcasterHighlights() {
       document.querySelectorAll('.rank-row, .unknown-row').forEach((row) => {
         const nickname = row.querySelector('.name-link')?.textContent?.trim() || '';
-        row.classList.toggle('featured-broadcaster', FEATURED_BROADCASTERS.has(nickname));
+        row.classList.toggle('featured-broadcaster', isFeaturedBroadcasterName(nickname));
       });
     }
 
