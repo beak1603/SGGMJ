@@ -2314,7 +2314,7 @@
     }
     .deadline-countdown.is-complete .deadline-closed-title {
       color: #d62f2f !important;
-      font-size: 25px !important;
+      font-size: 34px !important;
       line-height: 1.15 !important;
       font-weight: 950 !important;
       letter-spacing: -.025em !important;
@@ -2333,7 +2333,7 @@
         gap: 4px !important;
       }
       .deadline-countdown.is-complete .deadline-closed-title {
-        font-size: 19px !important;
+        font-size: 26px !important;
       }
       .deadline-countdown.is-complete .deadline-closed-note {
         font-size: 11px !important;
@@ -2764,7 +2764,6 @@
         if (!box.classList.contains('is-complete')) {
           box.innerHTML = `
             <strong class="deadline-closed-title">신청이 마감되었습니다!</strong>
-            <span class="deadline-closed-note">합격자 발표는 22일(오늘) 예정입니다</span>
           `;
           box.classList.remove('is-warning', 'is-urgent');
           box.classList.add('is-closed', 'is-complete');
